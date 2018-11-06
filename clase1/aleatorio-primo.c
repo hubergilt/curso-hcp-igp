@@ -10,11 +10,14 @@ int main(){
     for(i=0;i<5;i++){
         numero=rand()%20;
         esprimo=0;
-        for(j=1;j<numero;j++){
+        for(j=1;j<=numero;j++){
             if(numero%j==0){ esprimo++; }
         }         
-        printf("%d \n",numero);
-        if(esprimo==2)
-            { printf("Es primo\n"); }
+        if(esprimo==2 || numero==1){ 
+	  printf("%d es primo\n", numero);
+       	}
+	else {
+          printf("%d \n", numero);
+	}
     }
 }
