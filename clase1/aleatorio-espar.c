@@ -8,7 +8,7 @@ int main(){
     int i;
     for(i=0;i<5;i++){
         numero=rand()%20;
-        printf("%d \n",numero);
-        if(numero%2==0){ printf("El numero es par\n"); }
+        if(numero%2==0){ printf("%d es par\n",numero); }
+        else{ printf("%d\n",numero); }
     }
 }
