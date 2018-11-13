@@ -52,7 +52,7 @@ if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 
 
 
-pthread_exit(NULL);
+// pthread_exit(NULL);
 return 0;
 }
 

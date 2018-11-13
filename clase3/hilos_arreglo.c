@@ -29,6 +29,6 @@ if (rc){printf("ERROR al crear el hilo %ld codigo %d \n",t,rc);
 }
 
 
-pthread_exit(NULL);
+// pthread_exit(NULL);
 return 0;
 }

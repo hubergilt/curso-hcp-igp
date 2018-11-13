@@ -81,6 +81,6 @@ while(t<NUM_HILOS){
 }
 
 
-pthread_exit(NULL);
+// pthread_exit(NULL);
 return 0;
 }
