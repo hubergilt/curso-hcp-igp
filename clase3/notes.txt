@@ -1,0 +1,3 @@
+gcc -pg mult_vectores_seq.c -o mult_vectores_seq.exe
+./mult_vectores_seq.exe
+gprof mult_vectores_seq.exe gmon.out > resultados.txt
