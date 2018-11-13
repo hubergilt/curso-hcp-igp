@@ -13,6 +13,15 @@ pthread_exit(NULL);
 }
 
 
+void *printChau( void *id_hilo)
+{
+long hilo_id;
+hilo_id = (long)id_hilo;
+
+printf("Chau desde el hilo %ld \n",hilo_id);
+
+pthread_exit(NULL);
+}
 
 int main()
 {
@@ -35,18 +44,18 @@ if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 
 t=3;
-rc = pthread_create(&hilo3,NULL,printHola,(void*)t);
+rc = pthread_create(&hilo3,NULL,printChau,(void*)t);
 if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 
 
 t=4;
-rc = pthread_create(&hilo4,NULL,printHola,(void*)t);
+rc = pthread_create(&hilo4,NULL,printChau,(void*)t);
 if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 
 t=5;
-rc = pthread_create(&hilo5,NULL,printHola,(void*)t);
+rc = pthread_create(&hilo5,NULL,printChau,(void*)t);
 if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 

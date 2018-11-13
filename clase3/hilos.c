@@ -18,35 +18,14 @@ int main()
 {
 int i,j,k,rc;
 long t;
-pthread_t hilo0, hilo1, hilo2, hilo3, hilo4, hilo5;
+pthread_t hilo0,hilo1;
 t=0;
 rc = pthread_create(&hilo0,NULL,printHola,(void*)t);
 if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 
 t=1;
-rc = pthread_create(&hilo1,NULL,printHola,(void*)t);
-if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
-	exit(-1);}
-
-t=2;
-rc = pthread_create(&hilo2,NULL,printHola,(void*)t);
-if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
-	exit(-1);}
-
-t=3;
-rc = pthread_create(&hilo3,NULL,printHola,(void*)t);
-if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
-	exit(-1);}
-
-
-t=4;
-rc = pthread_create(&hilo4,NULL,printHola,(void*)t);
-if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
-	exit(-1);}
-
-t=5;
-rc = pthread_create(&hilo5,NULL,printHola,(void*)t);
+rc = pthread_create(&hilo0,NULL,printHola,(void*)t);
 if (rc){printf("ERROR creando hilo %ld , codigo %d \n",t,rc);
 	exit(-1);}
 
