@@ -3,5 +3,6 @@ clase1/libros
 clase2/codigos_c
 clase3/pthreads_1
 clase3/pthreads_2
+clase4/pthreads_3
 *.exe
 *~
