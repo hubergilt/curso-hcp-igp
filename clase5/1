@@ -1,0 +1,11 @@
+#include<stdio.h>
+
+int main(){
+ int numero1;
+ long numero2;
+ long long int numero3; 
+ printf("size of int %d", sizeof(int));
+ printf("size of long %d", sizeof(long));
+ printf("size of long long int %d", sizeof(long long long));
+ return 0;
+}
