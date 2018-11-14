@@ -1,0 +1,26 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+
+int main()
+{
+int i,j,k;
+int arr1[5][5];
+srand(time(NULL));
+
+for (i=0;i<5;i++)
+ {
+  for(j=0;j<5;j++)
+   {
+    printf("%x \t",&arr1[i][j]);
+   }
+  printf("\n");
+ }
+
+
+
+
+
+
+return 0;
+}
