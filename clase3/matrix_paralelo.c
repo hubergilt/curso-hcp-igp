@@ -56,6 +56,8 @@ int main()
     long t;
     double var1,var2;
     pthread_t hilos[NUM_HILOS]; //declaro mi arreglo de hilos
+    pthread_attr_t attr;
+    void *status;
      
     printf("Multiplicacion de Matrices\n");
     printf("Cuantas filas tiene la matriz 1 ?\n");
@@ -70,18 +72,36 @@ int main()
     llenar_numeros(m,n);
     //imprimir_matrix(n,n);
     
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_JOINABLE);    
+    
     for (t=0;t<NUM_HILOS;t++)
     {
         datos_pasar[t].thread_id=t;
         datos_pasar[t].num_filas=m;
         datos_pasar[t].num_columnas=n;
         printf("Creando el hilo %ld \n",t);
-        rc=pthread_create(&hilos[t],NULL,calcular,(void*)&datos_pasar[t]);
+        rc=pthread_create(&hilos[t],&attr,calcular,(void*)&datos_pasar[t]);
         if (rc){
             printf("ERROR codigo %d \n",rc);
             	exit(-1);
         	}
     }
+    
+    pthread_attr_destroy(&attr);
+    
+    for (t=0;t<NUM_HILOS;t++)
+    {
+        rc = pthread_join(hilos[t],&status);       
+        if (rc){
+            printf("ERROR, codigo %d \n",rc);
+         	exit(-1);
+        }
+        printf("Main: Acabo el hilo %ld con status %ld \n",t,(long)status);
+    
+    }
+    
+    printf("podemos continuar.......................\n");
     
     imprimir_matrix(m,n);
     printf("Despues de multiplicar \n");
