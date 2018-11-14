@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<pthread.h>
 #include<sys/time.h>
-#define NUM_HILOS  4
+#define NUM_HILOS  64
 int *arreglo1;
 int suma_total;
 int contador_hilos;
