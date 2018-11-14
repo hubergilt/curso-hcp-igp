@@ -11,3 +11,7 @@ Ejemplos de funciones, punteros y asignacion dinamica de memoria (libreria stdli
 ## Clase 3
 
 Ejemplos de estructuras, hilos, barreras y herramienta gprof (libreria pthread.h).
+
+## Clase 4
+
+Ejemplos de barreras por sincronizacion (libreria pthread.h).
