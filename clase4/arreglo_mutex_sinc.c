@@ -24,9 +24,13 @@ void *calcularSuma(void *parametros)
 {
 int i,j,k,lim_inf,lim_sup,tamanoA;
 long t;
-int contador_local;
+int contador_local=0;
+int contador_local2=0;
+
 int suma_parcial;
 struct datos *mis_datos;
+
+
 mis_datos=(struct datos*)parametros;
 t=mis_datos->thread_id;
 tamanoA=mis_datos->tamano;
@@ -44,7 +48,7 @@ pthread_mutex_lock(&mutex1);
 contador_local=contador_hilos;
 pthread_mutex_unlock(&mutex1);
 }
-while (contador_local < NUM_HILOS -1 );
+while (contador_local < NUM_HILOS );
 
 printf("Hilo %ld LIM inf %d , LIM sup %d \n",t,lim_inf,lim_sup);
 

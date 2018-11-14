@@ -3,8 +3,9 @@
 #include<pthread.h>
 #define NUM_HILOS 4
 int *arreglo1;
-long suma_total;
-long producto_total=1;
+int suma_total;
+int contador_hilos=0;
+int contador_hilos2=0;
 
 pthread_mutex_t mutex1;
 
@@ -22,11 +23,29 @@ void imprimir(int tamano);
 
 void *calcularSuma(void *parametros)
 {
+
+int contador_local2=0;
+
+pthread_mutex_lock(&mutex1);
+contador_hilos2++;
+pthread_mutex_unlock(&mutex1);
+
+do 
+{
+pthread_mutex_lock(&mutex1);
+contador_local2=contador_hilos2;
+pthread_mutex_unlock(&mutex1);
+}
+while (contador_local2 < NUM_HILOS );
+printf("Todos los hilos empezaron a la barrera\n");
+
 int i,j,k,lim_inf,lim_sup,tamanoA;
 long t;
+int contador_local=0;
+
 int suma_parcial;
-long producto_parcial=1;
 struct datos *mis_datos;
+
 mis_datos=(struct datos*)parametros;
 t=mis_datos->thread_id;
 tamanoA=mis_datos->tamano;
@@ -34,8 +53,22 @@ tamanoA=mis_datos->tamano;
 lim_inf=t*(tamanoA/NUM_HILOS);
 lim_sup=(t+1)*(tamanoA/NUM_HILOS);
 
-printf("llego aca\n");
+
+pthread_mutex_lock(&mutex1);
+contador_hilos++;
+pthread_mutex_unlock(&mutex1);
+
+
+do 
+{
+pthread_mutex_lock(&mutex1);
+contador_local=contador_hilos;
+pthread_mutex_unlock(&mutex1);
+}
+while (contador_local < NUM_HILOS );
+
 printf("Hilo %ld LIM inf %d , LIM sup %d \n",t,lim_inf,lim_sup);
+
 
 suma_parcial=0;
 for (i=lim_inf;i<lim_sup;i++)
@@ -45,35 +78,6 @@ for (i=lim_inf;i<lim_sup;i++)
 
 pthread_mutex_lock(&mutex1);
 suma_total += suma_parcial;
-pthread_mutex_unlock(&mutex1);
-
-pthread_exit((void*)t);
-}
-
-void *calcularProducto(void *parametros)
-{
-int i,j,k,lim_inf,lim_sup,tamanoA;
-long t;
-long producto_parcial=1;
-struct datos *mis_datos;
-mis_datos=(struct datos*)parametros;
-t=mis_datos->thread_id;
-tamanoA=mis_datos->tamano;
-
-lim_inf=t*(tamanoA/NUM_HILOS);
-lim_sup=(t+1)*(tamanoA/NUM_HILOS);
-
-printf("llego aca\n");
-printf("Hilo %ld LIM inf %d , LIM sup %d \n",t,lim_inf,lim_sup);
-
-producto_parcial=1;
-for (i=lim_inf;i<lim_sup;i++)
-	{
-	producto_parcial = producto_parcial*arreglo1[i];	
-	}
-
-pthread_mutex_lock(&mutex1);
-producto_total = producto_total*producto_parcial;
 pthread_mutex_unlock(&mutex1);
 
 pthread_exit((void*)t);
@@ -96,7 +100,6 @@ scanf("%d",&tam_arreglo);
 printf("El arreglo va a tener %d elementos \n",tam_arreglo); 
 
 suma_total=0;
-producto_total=1;
 allocar_arreglo(tam_arreglo); //Llama funcion para alocar memoria dinamica
 llenar_arreglo(tam_arreglo); //LLena el arreglo de numeros aleatorios
 imprimir(tam_arreglo); //Imprimi el arreglo
@@ -105,7 +108,7 @@ for (t=0;t<NUM_HILOS;t++)
 {
 datos_pasar[t].thread_id=t;
 datos_pasar[t].tamano=tam_arreglo;
-rc=pthread_create(&arreglo_hilos[t],&attr,calcularProducto,(void*)&datos_pasar[t]);
+rc=pthread_create(&arreglo_hilos[t],&attr,calcularSuma,(void*)&datos_pasar[t]);
 printf("Creando hilo %ld \n",t);
 if (rc){printf("ERROR al crear el hilo %ld codigo %d \n",t,rc);
 	exit(-1);}
@@ -123,10 +126,10 @@ printf("En la funcion main, ya acabo el hilo %ld con status %ld \n",t,(long)stat
 
 }
 
-//printf("La suma final es %d \n",suma_total);
-printf("El producto final es %ld \n",producto_total);
+printf("La suma final es %d \n",suma_total);
 printf("Fin del programa \n");
 pthread_mutex_destroy(&mutex1);
+pthread_exit(NULL);
 free(arreglo1);
 return 0;
 
@@ -143,7 +146,7 @@ void llenar_arreglo(int tamano)
 int i;
 for (i=0;i<tamano;i++)
 	{
-		arreglo1[i]=rand()%2+1;
+	arreglo1[i]=rand()%20;
 	}
 }
 
