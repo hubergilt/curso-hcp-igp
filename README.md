@@ -15,3 +15,7 @@ Ejemplos de estructuras, hilos, barreras y herramienta gprof (libreria pthread.h
 ## Clase 4
 
 Ejemplos de barreras por sincronizacion (libreria pthread.h).
+
+## Clase 5
+
+Ejemplos de corrimiento de bits, principios de localidad espacial y temporal.
