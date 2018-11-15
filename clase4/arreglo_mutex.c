@@ -123,9 +123,3 @@ for (i=0;i<tamano;i++)
 	}
 printf("Acabo imprimir\n");
 }
-
-
-
-
-
-
