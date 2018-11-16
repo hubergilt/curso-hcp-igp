@@ -14,7 +14,7 @@ Ejemplos de estructuras, hilos, barreras y herramienta gprof (libreria pthread.h
 
 ## Clase 4
 
-Ejemplos de exclusion mutua, uniendo hilos, midiendo el tiempo y sincronizacion (libreria pthread.h).
+Ejemplos de sincronizacion con exclusion mutua, uniendo hilos, midiendo el tiempo de ejecucion, comparando programa serial vs paralelo y barreras (libreria pthread.h).
 
 ## Clase 5
 
