@@ -18,4 +18,4 @@ Ejemplos de sincronizacion con exclusion mutua, uniendo hilos, midiendo el tiemp
 
 ## Clase 5
 
-Ejemplos de corrimiento de bits, principios de localidad espacial y temporal. (libreria time.h)
+Ejemplos de corrimiento de bits, principios de localidad espacial y temporal, orden por filas y asignacion continua de direcciones de memoria. (libreria time.h)
