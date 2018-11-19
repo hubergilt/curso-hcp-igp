@@ -20,7 +20,7 @@
 #define ERR_OPT3	"Error en opcion requerida '-%c' con valor %s es invalida\n"
 #define ERR_DIM		"Error en dimension, el numero de columnas de la primera matrix (%d) es diferente al numero de filas de las segunda fila %d invalida\n"
 
-#define MEN_OPT1	"\nUso del comando : %s [-m] [-f numpy]\n\tPor defecto la asignacion de valores es aleatoria\n\tm : Para, ingresar valores de forma manual\n\tf numpy : Para, imprimir en formato numpy para matrix\n"
+#define MEN_USO		"\nUso del comando : %s [-m] [-f <numpy>] [-o <i,j,k>]\n\tPor defecto la asignacion de valores es aleatoria\n\tm : Para, ingresar valores de forma (m)anual\n\tf <numpy> : Para, imprimir en (f)ormato numpy para matrix\n\to <i,j,k> : Para, asignar el (o)rden de las matrices a [i][j] y [j][k]\n"
 
 #define	MEN_TITLE   "\tMultiplicacion de Matrices Sequencial\n"
 #define	MEN_PROMT1  "Ingrese orden de la %s matrix: nfilas,ncolumnas >> "
@@ -42,7 +42,7 @@ void printf_matrix(){
 	{
 		for(j=0; j<ma_ncol; j++)
 		{
-			printf("[%d][%d] = %lf \t",i,j,ma[i][j]);
+			printf("[%d][%d]=%.2lf\t",i,j,ma[i][j]);
 		}
 		printf("\n");
 	}
@@ -51,7 +51,7 @@ void printf_matrix(){
 	{
 		for(j=0; j<mb_ncol; j++)
 		{
-			printf("[%d][%d] = %lf \t",i,j,mb[i][j]);
+			printf("[%d][%d]=%.2lf\t",i,j,mb[i][j]);
 		}
 		printf("\n");
 	}
@@ -60,7 +60,7 @@ void printf_matrix(){
 	{
 		for(j=0; j<mb_ncol; j++)
 		{
-			printf("[%d][%d] = %lf \t",i,j,mr[i][j]);
+			printf("[%d][%d]=%.2lf\t",i,j,mr[i][j]);
 		}
 		printf("\n");
 	}
@@ -74,7 +74,7 @@ void numpy_matrix(){
 		printf("[");
 		for(j=0; j<ma_ncol; j++)
 		{
-			printf("%lf,",ma[i][j]);
+			printf("%.2lf,",ma[i][j]);
 		}
 		printf("],\n");
 	}
@@ -87,7 +87,7 @@ void numpy_matrix(){
 		printf("[");
 		for(j=0; j<mb_ncol; j++)
 		{
-			printf("%lf,", mb[i][j]);
+			printf("%.2lf,", mb[i][j]);
 		}
 		printf("],\n");
 	}
@@ -98,7 +98,7 @@ void numpy_matrix(){
 	{
 		for(j=0; j<mb_ncol; j++)
 		{
-			printf("[%d][%d] = %lf \t",i,j,mr[i][j]);
+			printf("[%d][%d]=%.2lf\t",i,j,mr[i][j]);
 		}
 		printf("\n");
 	}
@@ -197,16 +197,13 @@ void rand_matrix(){
 }
 
 void product_matrix(){
-	double sum=0;
 	for (i=0; i<ma_nfil; i++)
 	{
-		for(j=0; j<ma_ncol; j++)
+		for(j=0; j<mb_ncol; j++)
 		{
-			sum=0;
-			for(k=0; k<mb_ncol; k++)
+			for(k=0; k<ma_ncol; k++)
 			{
-				sum += ma[i][k]*mb[k][j];
-				mr[i][j]=sum;
+				mr[i][j] += ma[i][k]*mb[k][j];
 			}
 		}
 	}
@@ -215,9 +212,9 @@ void product_matrix(){
 int main(int argc, char *argv[])
 {
 	char c;
-	int mflag = 0, errflag = 0, fflag = 0;
-	char * format;
-	while((c=getopt(argc, argv, ":mf:"))!=-1)
+	int mflag = 0, errflag = 0, fflag = 0, oflag = 0;
+	char * format={0}, * order={0};
+	while((c=getopt(argc, argv, ":mf:o:"))!=-1)
 	{
 		switch(c){
 			case 'm':
@@ -236,14 +233,23 @@ int main(int argc, char *argv[])
 				format=optarg;
 				fflag++;
 				break;
+			case 'o':
+				order=optarg;
+				oflag++;
+				break;
 			case ':':
 				fprintf(stderr, ERR_OPT2, optopt);
 				errflag++;
 				break;
 			case '?':
-				fprintf(stderr, ERR_OPT1, optopt);
-				errflag++;
-				break;
+				if(optopt=='?' || optopt=='o'){
+					fprintf(stderr, MEN_USO	, argv[0]);
+					return 1;
+				}else{
+					fprintf(stderr, ERR_OPT1, optopt);
+					errflag++;
+					break;					
+				}
 			default:
 				errflag++;
 				abort();
@@ -251,13 +257,18 @@ int main(int argc, char *argv[])
 	}
 
 	if(errflag){
-		fprintf(stderr, MEN_OPT1, argv[0]);
+		fprintf(stderr, MEN_USO	, argv[0]);
 		return 1;
 	}
 
-	printf("%s\n", format);
-	if(strcmp(format,"numpy") != 0){
+	if(fflag>0 && format!=NULL && strcmp(format,"numpy") != 0){
 		fprintf(stderr, ERR_OPT3, 'f', format);
+		return 2;
+	}
+
+	if(oflag>0 && sscanf(order, "%d,%d,%d", &ma_nfil, &ma_ncol, &mb_ncol)!=3){
+		printf("%s\n", order);
+		fprintf(stderr, ERR_OPT3, 'o', order);
 		return 2;
 	}
 
@@ -276,12 +287,15 @@ int main(int argc, char *argv[])
 			fprintf(stderr, ERR_DIM, ma_ncol, mb_nfil);
 			abort();
 		}
+	}if(oflag){
+		mb_nfil=ma_ncol;
 	}else{
 		ma_nfil=MA_NFIL;
 		ma_ncol=MA_NCOL;
 		mb_nfil=MB_NFIL;
 		mb_ncol=MB_NCOL;
 	}
+
 	printf("\n");
 	malloc_matrix();
 
@@ -291,6 +305,7 @@ int main(int argc, char *argv[])
 		rand_matrix();
 	}
 	printf("\n");
+
 	product_matrix();
 
 	if(fflag){
