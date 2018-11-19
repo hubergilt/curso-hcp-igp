@@ -26,3 +26,7 @@ Ejemplos de corrimiento de bits, principios de localidad espacial y temporal, or
 
 * Programar una calculador con menu
 * Programa multiplicacion de matrices cuadras
+
+## Laboratorio 2
+
+* Programar paralelizar la operacion de multiplicacion de matrices
