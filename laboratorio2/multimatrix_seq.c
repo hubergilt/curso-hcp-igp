@@ -27,7 +27,7 @@
 #define	MEN_PROMT1  "Ingrese orden de la %s matrix: nfilas,ncolumnas >> "
 #define	MEN_PROMT2  "El orden seleccionado para la %s matrix es >> [%d x %d] \n"
 #define MEN_PROMT3	"Matrix, Ingrese valor en la posicion [%d][%d] >> \n"
-#define MEN_PROMT4	"El resultado de la Multiplicacion de matrices es >> \n"
+#define MEN_PROMT4	"El resultado de la Multiplicacion de matrices es >> [%d x %d] \n"
 
 double **ma={0}, **mb={0}, **mr={0};
 int ma_nfil=MA_NFIL;
@@ -56,7 +56,7 @@ void printf_matrix(){
 		}
 		printf("\n");
 	}
-	printf(MEN_PROMT4);
+	printf(MEN_PROMT4, ma_nfil, mb_ncol);
 	for (i=0; i<ma_nfil; i++)
 	{
 		for(j=0; j<mb_ncol; j++)
@@ -94,7 +94,7 @@ void numpy_matrix(){
 	}
 	printf("],\n");
 
-	printf(MEN_PROMT4);
+	printf(MEN_PROMT4, ma_nfil, mb_ncol);
 	for (i=0; i<ma_nfil; i++)
 	{
 		for(j=0; j<mb_ncol; j++)
@@ -315,8 +315,14 @@ int main(int argc, char *argv[])
 	product_matrix();
 	gettimeofday(&fin, NULL);
 	tiempo = (fin.tv_sec-ini.tv_sec)+(fin.tv_usec-ini.tv_usec)/1000000.0;
+	printf("Multiplicacion de matrices terminada en    >> %.6lf \tsegundos \n", tiempo);
 
-	printf("Multiplicacion de matrices terminada en >> %.6lf segundos \n", tiempo);
+    long nb=0;
+    nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*sizeof(double);
+	
+	printf("Tamaño del problema, suma memoria asignada >> %ld \tbytes \n", nb);
+
+	printf("\n");
 
 	if(!rflag){
 		if(format!=NULL){
