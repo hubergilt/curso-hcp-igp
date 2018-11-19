@@ -16,6 +16,8 @@ Ejemplos de estructuras, hilos, barreras y herramienta gprof (libreria pthread.h
 
 Ejemplos de sincronizacion con exclusion mutua, uniendo hilos, midiendo el tiempo de ejecucion, comparando programa serial vs paralelo y barreras (libreria pthread.h).
 
+![Grafico de Hilos]("clase4/time vs. threads.png" "Tiempo en segundo vs numero de hilos")
+
 ## Clase 5
 
 Ejemplos de corrimiento de bits, principios de localidad espacial y temporal, orden por filas y asignacion continua de direcciones de memoria. (libreria time.h)
