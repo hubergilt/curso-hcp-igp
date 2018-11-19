@@ -7,6 +7,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
+#include<sys/time.h>
 
 #define MA_NFIL 4
 #define MA_NCOL 4
@@ -20,7 +21,7 @@
 #define ERR_OPT3	"Error en opcion requerida '-%c' con valor %s es invalida\n"
 #define ERR_DIM		"Error en dimension, el numero de columnas de la primera matrix (%d) es diferente al numero de filas de las segunda fila %d invalida\n"
 
-#define MEN_USO		"\nUso del comando : %s [-m] [-f <numpy>] [-o <i,j,k>]\n\tPor defecto la asignacion de valores es aleatoria\n\tm : Para, ingresar valores de forma (m)anual\n\tf <numpy> : Para, imprimir en (f)ormato numpy para matrix\n\to <i,j,k> : Para, asignar el (o)rden de las matrices a [i][j] y [j][k]\n"
+#define MEN_USO		"\nUso del comando : %s [-m] [-f <numpy>] [-o <i,j,k>] [-r]\n\tPor defecto la asignacion de valores es aleatoria\n\tm : Para, ingresar valores de forma (m)anual\n\tf <numpy> : Para, imprimir en (f)ormato numpy para matrix\n\to <i,j,k> : Para, asignar el (o)rden de las matrices a [i][j] y [j][k]\n\tr : Para, mostrar informacion (r)esumida\n"
 
 #define	MEN_TITLE   "\tMultiplicacion de Matrices Sequencial\n"
 #define	MEN_PROMT1  "Ingrese orden de la %s matrix: nfilas,ncolumnas >> "
@@ -212,9 +213,9 @@ void product_matrix(){
 int main(int argc, char *argv[])
 {
 	char c;
-	int mflag = 0, errflag = 0, fflag = 0, oflag = 0;
+	int mflag = 0, errflag = 0, oflag = 0, rflag = 0;
 	char * format={0}, * order={0};
-	while((c=getopt(argc, argv, ":mf:o:"))!=-1)
+	while((c=getopt(argc, argv, ":mf:o:r"))!=-1)
 	{
 		switch(c){
 			case 'm':
@@ -223,19 +224,20 @@ int main(int argc, char *argv[])
 				}else{
 					mflag++;
 				}
-				if(fflag){
-					errflag++;
-				}else{
-					fflag++;
-				}
 				break;
 			case 'f':
 				format=optarg;
-				fflag++;
 				break;
 			case 'o':
 				order=optarg;
 				oflag++;
+				break;
+			case 'r':
+				if(rflag){
+					errflag++;
+				}else{
+					rflag++;
+				}
 				break;
 			case ':':
 				fprintf(stderr, ERR_OPT2, optopt);
@@ -261,7 +263,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if(fflag>0 && format!=NULL && strcmp(format,"numpy") != 0){
+	if(format!=NULL && strcmp(format,"numpy") != 0){
 		fprintf(stderr, ERR_OPT3, 'f', format);
 		return 2;
 	}
@@ -306,13 +308,26 @@ int main(int argc, char *argv[])
 	}
 	printf("\n");
 
-	product_matrix();
+	struct timeval ini, fin;
+	double tiempo;
 
-	if(fflag){
-		numpy_matrix();
-	}else{
-		printf_matrix();
+	gettimeofday(&ini, NULL);
+	product_matrix();
+	gettimeofday(&fin, NULL);
+	tiempo = (fin.tv_sec-ini.tv_sec)+(fin.tv_usec-ini.tv_usec)/1000000.0;
+
+	printf("Multiplicacion de matrices terminada en >> %.6lf segundos \n", tiempo);
+
+	if(!rflag){
+		if(format!=NULL){
+			numpy_matrix();
+		}else{
+			printf_matrix();
+		}
 	}
+
 	free_matrix();
+	printf("\n");
+
 	return 0;
 }
