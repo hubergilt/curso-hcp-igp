@@ -204,7 +204,7 @@ void rand_matrix(){
 
 struct datos
 {
-    int id;
+    long id;
     int filas;
     int filcols;
     int columnas;
@@ -212,10 +212,11 @@ struct datos
 
 void *product_matrix(void *parametros){
 
-    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, id=0, filas=0, filcols=0, columnas=0;
+    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, filas=0, filcols=0, columnas=0;
+    long id=0;
 
     struct datos *mis_datos;
-    mis_datos=(struct datos*)parametros;
+    mis_datos=(struct datos *)parametros;
     id      =mis_datos->id;
     filas   =mis_datos->filas;
     filcols =mis_datos->filcols;
@@ -354,9 +355,7 @@ int main(int argc, char *argv[])
 		rand_matrix();
 	}
 	printf("\n");
-	
-	
-    struct datos *mis_datos=(struct datos*)parametros;    
+		
     struct datos datos_pasar[num_hilos];
     int t=0, rc=0;	
 	
@@ -369,18 +368,17 @@ int main(int argc, char *argv[])
 	struct timeval ini, fin;
 	
 	gettimeofday(&ini, NULL);
-	//product_matrix();
-	for (t=0;t<NUM_HILOS;t++)
+	for (t=0;t<num_hilos;t++)
     {
         datos_pasar[t].id=t;
         datos_pasar[t].filas=ma_nfil;
         datos_pasar[t].filcols=ma_ncol;
         datos_pasar[t].columnas=mb_ncol;
         
-        rc=pthread_create(&arreglo_hilos[t],&attr,product_matrix,(void*)&datos_pasar[t]);
+        rc=pthread_create(&hilos[t],&attr,product_matrix,(void*)&datos_pasar[t]);
         printf("Creando hilo %ld \n",t);
         if (rc){
-            printf("ERROR al crear el hilo %ld codigo %d \n",t,rc);
+            printf("ERROR al crear el hilo %ld codigo %d \n", t, rc);
         	exit(-1);
         }
     
@@ -388,8 +386,8 @@ int main(int argc, char *argv[])
     
     pthread_attr_destroy(&attr);
 
-    for (t=0;t<NUM_HILOS;t++){
-        rc=pthread_join(arreglo_hilos[t],&status);
+    for (t=0;t<num_hilos;t++){
+        rc=pthread_join(hilos[t],&status);
         if (rc){
             printf("ERROR,codigo %d \n",rc);
             exit(-1);
@@ -416,8 +414,6 @@ int main(int argc, char *argv[])
 		}
 	}
 	
-
-
 	free_matrix();
 	printf("\n");
 
