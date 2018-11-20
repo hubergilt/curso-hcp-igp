@@ -212,11 +212,10 @@ struct datos
 
 void *product_matrix(void *parametros){
 
-    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, filas=0, filcols=0, columnas=0;
+    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, filas=0, filcols=0, columnas=0, lim_sup2=0;
     long id=0;
 
-    struct datos *mis_datos;
-    mis_datos=(struct datos *)parametros;
+    struct datos *mis_datos = (struct datos *)parametros;
     id      =mis_datos->id;
     filas   =mis_datos->filas;
     filcols =mis_datos->filcols;
@@ -224,14 +223,20 @@ void *product_matrix(void *parametros){
 
     lim_inf=id*(filas/num_hilos);
     lim_sup=(id+1)*(filas/num_hilos);
+    lim_sup2=(id+2)*(filas/num_hilos);
+
+    printf("lim_sup2: %d\n", lim_sup2);
+    if(filas<lim_sup2){
+    	lim_sup=filas;
+    }
 
     printf("Hilo %d, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
     
 	for (i=lim_inf; i<lim_sup; i++)
 	{
-		for(j=0; j<mb_ncol; j++)
+		for(j=0; j<columnas; j++)
 		{
-			for(k=0; k<ma_ncol; k++)
+			for(k=0; k<filcols; k++)
 			{
 				mr[i][j] += ma[i][k]*mb[k][j];
 			}
