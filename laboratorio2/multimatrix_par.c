@@ -220,28 +220,29 @@ void *product_matrix(void *parametros){
     filas   =mis_datos->filas;
     filcols =mis_datos->filcols;
     columnas=mis_datos->columnas;
-    
-    if(id>=filas){
-        pthread_exit((void*)id);
-    }
-    
+  
     pedazo = filas/num_hilos;
     
     if(pedazo==0){
         pedazo=1;
     }
-
+      
     lim_inf=id*pedazo;
     lim_sup=(id+1)*pedazo;
     lim_sup2=(id+2)*pedazo;
+   
+    //printf("Hilo %ld, LIM sump2 %d \n", id, lim_sup2);
 
-//    if(filas<=lim_sup2){
-//        lim_sup=filas;
-//    }
-
-    printf("lim_sup %d\n",lim_sup);
+    if((filas%num_hilos==0 && lim_sup==filas)||(filas%num_hilos!=0 && lim_sup2>=filas)){
+        printf("ULTIMO lim_sup %d\n",lim_sup);    
+        lim_sup=filas;
+    }
 
     printf("Hilo %ld, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
+    
+    if(lim_sup>=filas){
+        pthread_exit((void*)id);
+    }    
     
 	for (i=lim_inf; i<lim_sup; i++)
 	{
