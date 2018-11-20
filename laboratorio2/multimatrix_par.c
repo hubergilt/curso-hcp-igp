@@ -241,7 +241,7 @@ void *product_matrix(void *parametros){
 
     printf("lim_sup %d\n",lim_sup);
 
-    printf("Hilo %d, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
+    printf("Hilo %ld, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
     
 	for (i=lim_inf; i<lim_sup; i++)
 	{
@@ -373,7 +373,8 @@ int main(int argc, char *argv[])
 	printf("\n");
 		
     struct datos datos_pasar[num_hilos];
-    int t=0, rc=0;	
+    long t=0;
+    int rc=0;	
 	
     void *status;    	
     pthread_t hilos[num_hilos]; 
