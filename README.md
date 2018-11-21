@@ -30,3 +30,4 @@ Ejemplos de corrimiento de bits, principios de localidad espacial y temporal, or
 ## Laboratorio 2
 
 * Programar paralelizar la operacion de multiplicacion de matrices
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/grafica_multimatrix_paralelo.png "Grafica de la multiplicacion de matrices paralelo")
