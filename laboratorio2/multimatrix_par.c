@@ -212,7 +212,7 @@ struct datos
 
 void *product_matrix(void *parametros){
 
-    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, filas=0, filcols=0, columnas=0, lim_sup2=0, pedazo=1;
+    int i=0, j=0, k=0, lim_inf=0, lim_sup=0, filas=0, filcols=0, columnas=0, pedazo=1, flag=0;
     long id=0;
 
     struct datos *mis_datos = (struct datos *)parametros;
@@ -222,38 +222,56 @@ void *product_matrix(void *parametros){
     columnas=mis_datos->columnas;
   
     pedazo = filas/num_hilos;
+
+    //cuando el tamano de las filas es menor que el numero de hilos
+    if(pedazo<1){
     
-    if(pedazo==0){
         pedazo=1;
-    }
-      
-    lim_inf=id*pedazo;
-    lim_sup=(id+1)*pedazo;
-    lim_sup2=(id+2)*pedazo;
-   
-    //printf("Hilo %ld, LIM sump2 %d \n", id, lim_sup2);
-
-    if((filas%num_hilos==0 && lim_sup==filas)||(filas%num_hilos!=0 && lim_sup2>=filas)){
-        printf("ULTIMO lim_sup %d\n",lim_sup);    
-        lim_sup=filas;
-    }
-
-    printf("Hilo %ld, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
+        lim_inf=id*pedazo;
+        lim_sup=(id+1)*pedazo;     
+                
+        if(id>=0 && id<filas){    
+			flag++;    
+        }  
+        
+        if(id>=filas && id<num_hilos){
+            pthread_exit((void*)id);
+        }          
+    //cuando el tamano de las filas es mayor igual al numero de hilos     
+    }else{
     
-    if(lim_sup>=filas){
-        pthread_exit((void*)id);
-    }    
+        lim_inf=id*pedazo;
+        lim_sup=(id+1)*pedazo;
+        
+        //cuando no hay un residuo en las trozos de filas
+        if(filas%num_hilos==0){        
+            if(id>=0 && id<num_hilos){           
+            	flag++;
+            }
+        //cuando hay un residuo en los trozos de filas   
+        }else{      
+            if(id==num_hilos-1){
+                lim_sup+=(filas%num_hilos);
+			}	
+			flag++;
+        }
     
-	for (i=lim_inf; i<lim_sup; i++)
-	{
-		for(j=0; j<columnas; j++)
+    }
+
+    if(flag){
+        printf("Hilo %ld, LIM inf %d LIM sup %d \n", id, lim_inf, lim_sup);
+
+		for (i=lim_inf; i<lim_sup; i++)
 		{
-			for(k=0; k<filcols; k++)
+			for(j=0; j<columnas; j++)
 			{
-				mr[i][j] += ma[i][k]*mb[k][j];
+				for(k=0; k<filcols; k++)
+				{
+					mr[i][j] += ma[i][k]*mb[k][j];
+				}
 			}
 		}
-	}
+    }
 	
     pthread_exit((void*)id);    	
 }
