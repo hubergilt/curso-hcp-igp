@@ -26,7 +26,7 @@
 #define ERR_DIM		"Error en dimension, el numero de columnas de la primera matrix (%d) es diferente al numero de filas de las segunda fila %d invalida\n"
 #define MEN_USO		"\nUso del comando : %s [-m] [-f <numpy>] [-o <i,j,k>] [-r] [-h <num-hilos>]\n\tPor defecto la asignacion de valores es aleatoria\n\tm : Para, ingresar valores de forma (m)anual\n\tf <numpy> : Para, imprimir en (f)ormato numpy para matrix\n\to <i,j,k> : Para, asignar el (o)rden de las matrices a [i][j] y [j][k]\n\tr : Para, mostrar informacion (r)esumida\n\th <num-hilos> : Para h>1, asignar un numero de (h)ilos de ejecución\n"
 
-#define	MEN_TITLE   "\tMultiplicacion de Matrices Sequencial\n"
+#define	MEN_TITLE   "\tMultiplicacion de Matrices Paralelo con %d hilos\n"
 #define	MEN_PROMT1  "Ingrese orden de la %s matrix: nfilas,ncolumnas >> "
 #define	MEN_PROMT2  "El orden seleccionado para la %s matrix es >> [%d x %d] \n"
 #define MEN_PROMT3	"Matrix, Ingrese valor en la posicion [%d][%d] >> \n"
@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
 		return 2;
 	}	
 	
-	printf(MEN_TITLE);
+	printf(MEN_TITLE, num_hilos);
 
 	if(mflag){
 		printf(MEN_PROMT1, "PRIMERA");
