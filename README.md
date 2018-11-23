@@ -40,4 +40,5 @@ Ejemplos de subrutinas (paso por referencia), bloques de modulos, alias de subru
 ## Laboratorio 2
 
 * Programar paralelizar la operacion de multiplicacion de matrices
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/grafica_multimatrix_paralelo.png "Grafica de la multiplicacion de matrices paralelo")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_master.png "Grafica de la multiplicacion de matrices paralelo nodo master")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_computo.png "Grafica de la multiplicacion de matrices paralelo nodo computo")
