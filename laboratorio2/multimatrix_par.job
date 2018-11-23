@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH --job-name=multipar
+#SBATCH --partition=mpi_long2
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
+#SBATCH --ntasks=24
+#SBATCH --nodelist=n20
+gcc -pthread ./multimatrix_par.c -o ./multimatrix_par.exe
+for h in {2..100}; do 
+    ./multimatrix_par.exe -o 2000,2000,2000 -r -h ${h}
+done;

@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=multiseq
+#SBATCH --partition=mpi_long2
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
+#SBATCH --nodelist=n20
+#SBATCH --ntasks=24
+gcc ./multimatrix_seq.c -o ./multimatrix_seq.exe
+./multimatrix_seq.exe -o 2000,2000,2000 -r
+./multimatrix_seq.exe -o 1500,1500,1500 -r
+./multimatrix_seq.exe -o 1000,1500,1500 -r
+./multimatrix_seq.exe -o 1000,1000,1500 -r
+./multimatrix_seq.exe -o 1000,1000,1000 -r
+./multimatrix_seq.exe -o 1000,1000,500 -r
+./multimatrix_seq.exe -o 1000,500,500 -r
+./multimatrix_seq.exe -o 500,500,500 -r

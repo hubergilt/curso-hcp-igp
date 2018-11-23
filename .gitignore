@@ -8,3 +8,6 @@ clase5/localidad
 clase6/fortran
 *.exe
 *~
+*.out
+*.err
+*#
