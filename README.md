@@ -31,6 +31,9 @@ Introduccion a fortran 95, ejemplos de salida y entrada estandar, numeros, bloqu
 
 Ejemplos de subrutinas (paso por referencia), bloques de modulos, alias de subrutinas, arreglos estaticos, arreglos dinamicos, arreglos de primer orden y segundo orden, numeros aleaorios con semilla, formato para numeros y cadenas de caracteres, estructuras de datos (type) y arreglo de estructuras (type).
 
+## Clase 8
+
+Ejemplos de MPI con fortran, iniciar MPI con MPI_INIT, identificar el id del proceso (rackid) con MPI_COMM_RANK, obtener el numero de procesos con MPI_COMM_SIZE, enviar mensajes con MPI_SEND, recibir mensajes con MPI_RECV por el comunicador MPI_COMM_WORLD y terminar el proceso con MPI_COMM_FINALIZE. Enviar enteros y arreglos.
 
 ## Laboratorio 1
 
