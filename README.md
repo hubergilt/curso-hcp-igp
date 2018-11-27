@@ -33,15 +33,23 @@ Ejemplos de subrutinas (paso por referencia), bloques de modulos, alias de subru
 
 ## Clase 8
 
-Ejemplos de MPI con fortran, iniciar MPI con MPI_INIT, identificar el id del proceso (rackid) con MPI_COMM_RANK, obtener el numero de procesos con MPI_COMM_SIZE, enviar mensajes con MPI_SEND, recibir mensajes con MPI_RECV por el comunicador MPI_COMM_WORLD y terminar el proceso con MPI_COMM_FINALIZE. Enviar enteros y arreglos.
+Ejemplos de MPI con fortran 95, iniciar MPI con MPI_INIT, identificar el id del proceso (rankid) con MPI_COMM_RANK, obtener el numero de procesos con MPI_COMM_SIZE, enviar mensajes con MPI_SEND, recibir mensajes con MPI_RECV por el comunicador MPI_COMM_WORLD y terminar el proceso con MPI_COMM_FINALIZE. Paso de mensajes tipo datos enteros y arreglos.
 
 ## Laboratorio 1
 
-* Programar una calculador con menu
-* Programa multiplicacion de matrices cuadras
+* Programar una calculador con menu con c
+* Programa multiplicacion de matrices cuadras con c
 
 ## Laboratorio 2
 
 * Programar paralelizar la operacion de multiplicacion de matrices
 ![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_master.png "Grafica de la multiplicacion de matrices paralelo nodo master")
 ![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_computo.png "Grafica de la multiplicacion de matrices paralelo nodo computo")
+
+## Laboratorio 3
+
+* Programar una calculador con menu con fortran 95
+* Programa multiplicacion de matrices cuadras con fortran 95
+
+
+
