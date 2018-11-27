@@ -83,17 +83,18 @@ contains
 
   real function residuo(val1,val2)
       real :: val1, val2
+      integer :: val
       print *, "Operacion RESIDUO, ingrese : valor1%valor2 >> "
       read (*,*), val1, val2
-      residuo = mod(val1, val2)
+      val = mod(val1, val2)
   end function residuo
 
-  real function modulo(val1,val2)
+  real function fmodulo(val1,val2)
       real :: val1, val2
       print *, "Operacion MODULO, ingrese : valor1|valor2 >> "
       read (*,*), val1, val2
-      modulo = sqrt(val1**2+val2**2)
-  end function modulo
+      fmodulo = sqrt(val1**2+val2**2)
+  end function fmodulo
 
   real function argumento(val1,val2)
       real :: val1, val2
@@ -102,12 +103,12 @@ contains
       argumento = atan(val1**2+val2**2)
   end function argumento
 
-  real function ln(val1)
+  real function fln(val1)
       real :: val1
       print *, "Operacion LOG NATURAL, ingrese : valor1 >> "
       read *, val1
-      ln = log(val1)
-  end function ln
+      !fln = log(val1)
+  end function fln
 
   real function ln10(val1)
       real :: val1
@@ -120,7 +121,7 @@ contains
       real :: val1
       print *, "Operacion ABS, ingrese : valor1 >> "
       read *, val1
-      abso = abs(val1)
+      !abso = abs(val1)
   end function abso
 
   real function seno(val1)
@@ -134,100 +135,101 @@ contains
       real :: val1
       print *, "Operacion COS, ingrese : valor1 >> "
       read *, val1
-      cose = cos(val1)
+      !cose = cos(val1)
   end function cose
 
-  recursive function factorial(val1) result(facto)
-      real :: facto
-      facto = 0
-      if (val1.eq.0) then
-        facto = 1
-      else
-        facto = val1-1;
-        facto = val1*factorial(facto)
-      endif
-      !factorial = facto
-  end function factorial
+  ! recursive function factorial(val1) result(facto)
+  !     real :: val1, facto
+  !     facto = 0
+  !     if (val1.eq.0) then
+  !       facto = 1
+  !     else
+  !       facto = val1-1;
+  !       facto = val1*factorial(facto)
+  !     endif
+  !     !factorial = facto
+  ! end function factorial
 
 
-  real function fact(val1)
+  real function fact1(val1)
       real :: val1
       print *, "Operacion FACT, ingrese : valor1 >> "
       read *, val1
-      fact = factorial(val1)
-  end function fact
+      !fact = factorial(val1)
+  end function fact1
 
-  real function prim(val1)
-      real :: val1, i
-      integer :: esprimo, cuenta
-      print *, "Operacion PRIMO, ingrese : valor1 >> "
-      read *, val1
-      esprimo = 1
-      i = 1
-      cuenta = 0
-      if (val1.eq.0 .or. val1.eq.1) then
-        esprimo  = 1
-      else
-          do while(i.le.val1)
-              if((mod(val1,i)).eq.0) then
-                  cuenta=cuenta+1
-              endif
-              i=i+1
-          enddo
-          if(cuenta.eq.2) then
-              esprimo=1
-          endif
-      endif
-      prim=esprimo
-  end function prim
+  ! real function prim1(val1)
+  !     real :: val1, i
+  !     integer :: esprimo, cuenta
+  !     print *, "Operacion PRIMO, ingrese : valor1 >> "
+  !     read *, val1
+  !     esprimo = 1
+  !     i = 1
+  !     cuenta = 0
+  !     if (val1.eq.0 .or. val1.eq.1) then
+  !       esprimo  = 1
+  !     else
+  !         do while(i.le.val1)
+  !             if(mod(val1,i) .eq. 0) then
+  !                 cuenta=cuenta+1
+  !             end if
+  !             i=i+1
+  !         end do
+  !         if(cuenta.eq.2) then
+  !             esprimo=1
+  !         end if
+  !     end if
+  !     prim=esprimo
+  ! end function prim
 
-  real function perf(val1)
-      real :: val1, i
-      integer :: esperfecto, cuenta, suma
-      integer, allocatable :: divisores(:)
-      print *, "Operacion NUM PERFECTO, ingrese : valor1 >> "
-      read *, val1
+  ! real function perf(val1)
+  !     real :: val1, i
+  !     integer :: esperfecto, cuenta, suma
+  !     integer, allocatable :: divisores(:)
+  !     print *, "Operacion NUM PERFECTO, ingrese : valor1 >> "
+  !     read *, val1
 
-      allocate (divisores(100))  
+  !     allocate (divisores(100))  
 
-      esperfecto=0
-      i=1
-      cuenta = 0
+  !     esperfecto=0
+  !     i=1
+  !     cuenta = 0
 
-      do while(i.lt.val1)
-          if((mod(val1,i)).eq.0) then
-              cuenta=cuenta+1
-              divisores(cuenta)=i
-          endif
-          i=i+1
-      enddo
+  !     do while(i.lt.val1)
+  !         if((mod(val1,i)).eq.0) then
+  !             cuenta=cuenta+1
+  !             divisores(cuenta)=i
+  !         end if
+  !         i=i+1
+  !     enddo
 
-      esprimo = 1
-      i = 0
+  !     esprimo = 1
+  !     i = 0
 
-      do while(cuenta.gt.-1)
-          suma=suma+divisores(cuenta)
-          cuenta=cuenta-1
-      enddo
+  !     do while(cuenta.gt.-1)
+  !         suma=suma+divisores(cuenta)
+  !         cuenta=cuenta-1
+  !     enddo
 
-      if(suma.eq.val1) then
-          esperfecto=1
-      endif
+  !     if(suma.eq.val1) then
+  !         esperfecto=1
+  !     end if
 
-      deallocate(divisores)
+  !     deallocate(divisores)
 
-      perf=esperfecto
-  end function perf
+  !     perf=esperfecto
+  ! end function perf
 
 
   real function execute(oper)
-    real :: oper, val1, val2
+    integer :: oper
+    real :: val1, val2
     select case (oper)
       case(SUMA)
         execute=sumar(val1, val2)
-      case(REST)
+      case(RESTA)
         execute=restar(val1, val2)
-      case(MULT)
+      case(MULTI)
         execute=multiplica(val1, val2)
       case(DIVI)
         execute=divide(val1, val2)
@@ -236,11 +238,11 @@ contains
       case(RESI)
         execute=residuo(val1, val2)
       case(MOD)
-        execute=modulo(val1, val2)
+        execute=fmodulo(val1, val2)
       case(ARG)
         execute=argumento(val1, val2)
       case(LOGN)
-        execute=ln(val1)
+        execute=fln(val1)
       case(LOG)
         execute=ln10(val1)
       case(ABS)
@@ -250,11 +252,11 @@ contains
       case(COS)
         execute=cose(val1)
       case(FACT)
-        execute=fact(val1)
+        !execute=fact(val1)
       case(PRIM)
-        execute=prim(val1)
+        !execute=prim(val1)
       case(PERF)
-        execute=perf(val1)                           
+        !execute=perf(val1)                           
       case default
         execute=0
     end select
@@ -276,8 +278,8 @@ program calculadora
       oper = get_oper()
       print *,"La operacion seleccionada es >> ", oper
       if (oper.eq.SALIR) then
-        break
-      endif
+        exit
+      end if
       if(oper.gt.0 .or. oper.lt.SALIR) then
         resultado=execute(oper)
         if(oper.eq.PRIM) then
@@ -285,18 +287,16 @@ program calculadora
             print *,"Resultado de la operacion es >> PRIMO"
           else 
             print *,"Resultado de la operacion es >> NO PRIMO"
-          endif
+          end if
         else if(oper.eq.PERF) then
           if(resultado.eq.1) then
             print *,"Resultado de la operacion es >> PRIMO"
           else 
             print *,"Resultado de la operacion es >> NO PRIMO"
-          endif
+          end if
         else
             print *,"Resultado de la operacion es >> ", resultado
-        endif
+        end if
       endif
     end do
-
-
 end program calculadora
