@@ -12,3 +12,4 @@ clase6/fortran
 *.err
 *#
 clase8/codigos_mpi_fortran
+*.mod
