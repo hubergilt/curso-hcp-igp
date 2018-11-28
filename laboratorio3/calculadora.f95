@@ -42,41 +42,41 @@ contains
       option = SALIR
       print *,""
       print *,"Ingrese una operacion valida [1-16] >> "
-      read *, get_oper
+      read *, option
       get_oper = option
   end function get_oper
 
   real function sumar(val1,val2)
       real :: val1, val2
-      print *, "Operacion SUMAR, ingrese : valor1+valor2 >> "
+      print *, "Operacion SUMAR, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       sumar = val1+val2;
   end function sumar
 
   real function restar(val1,val2)
       real :: val1, val2
-      print *, "Operacion RESTAR, ingrese : valor1-valor2 >> "
+      print *, "Operacion RESTAR, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       restar = val1-val2;
   end function restar
 
   real function multiplica(val1,val2)
       real :: val1, val2
-      print *, "Operacion MULTIPLICA, ingrese : valor1*valor2 >> "
+      print *, "Operacion MULTIPLICA, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       multiplica = val1*val2;
   end function multiplica
 
   real function divide(val1,val2)
       real :: val1, val2
-      print *, "Operacion DIVIDE, ingrese : valor1/valor2 >> "
+      print *, "Operacion DIVIDE, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       divide = val1/val2;
   end function divide
 
   real function potencia(val1,val2)
       real :: val1, val2
-      print *, "Operacion POTENCIA, ingrese : valor1^valor2 >> "
+      print *, "Operacion POTENCIA, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       potencia = val1**val2;
   end function potencia
@@ -84,56 +84,56 @@ contains
   real function residuo(val1,val2)
       real :: val1, val2
       integer :: val
-      print *, "Operacion RESIDUO, ingrese : valor1%valor2 >> "
+      print *, "Operacion RESIDUO, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       val = mod(val1, val2)
   end function residuo
 
   real function fmodulo(val1,val2)
       real :: val1, val2
-      print *, "Operacion MODULO, ingrese : valor1|valor2 >> "
+      print *, "Operacion MODULO, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       fmodulo = sqrt(val1**2+val2**2)
   end function fmodulo
 
   real function argumento(val1,val2)
       real :: val1, val2
-      print *, "Operacion ARGUMENTO, ingrese : valor1?valor2 >> "
+      print *, "Operacion ARGUMENTO, ingrese : valor1 enter, luego valor2 y enter >> "
       read (*,*), val1, val2
       argumento = atan(val1**2+val2**2)
   end function argumento
 
   real function fln(val1)
       real :: val1
-      print *, "Operacion LOG NATURAL, ingrese : valor1 >> "
+      print *, "Operacion LOG NATURAL, ingrese : valor1 y enter >> "
       read *, val1
       fln = log(val1)
   end function fln
 
   real function ln10(val1)
       real :: val1
-      print *, "Operacion LOG BASE 10, ingrese : valor1 >> "
+      print *, "Operacion LOG BASE 10, ingrese : valor1 y enter >> "
       read *, val1
       ln10 = log10(val1)
   end function ln10
 
   real function fabs(val1)
       real :: val1
-      print *, "Operacion ABS, ingrese : valor1 >> "
+      print *, "Operacion ABS, ingrese : valor1 y enter >> "
       read *, val1
       fabs = abs(val1)
   end function fabs
 
   real function seno(val1)
       real :: val1
-      print *, "Operacion SIN, ingrese : valor1 >> "
+      print *, "Operacion SIN, ingrese : valor1 y enter >> "
       read *, val1
       seno = sin(val1)
   end function seno
 
   real function fcose(val1)
       real :: val1
-      print *, "Operacion COS, ingrese : valor1 >> "
+      print *, "Operacion COS, ingrese : valor1 y enter >> "
       read *, val1
       fcose = cos(val1)
   end function fcose
@@ -152,7 +152,7 @@ contains
 
   real function fact(val1)
       real :: val1
-      print *, "Operacion FACT, ingrese : valor1 >> "
+      print *, "Operacion FACT, ingrese : valor1 y enter >> "
       read *, val1
       fact = factorial(val1)
   end function fact
@@ -160,9 +160,9 @@ contains
   real function fprim(val1)
       real :: val1, i
       integer :: esprimo, cuenta
-      print *, "Operacion PRIMO, ingrese : valor1 >> "
+      print *, "Operacion PRIMO, ingrese : valor1 y enter >> "
       read *, val1
-      esprimo = 1
+      esprimo = 0
       i = 1
       cuenta = 0
       if (val1.eq.0 .or. val1.eq.1) then
@@ -185,24 +185,26 @@ contains
       real :: val1, i
       integer :: esperfecto, cuenta, suma
       integer, allocatable :: divisores(:)
-      print *, "Operacion NUM PERFECTO, ingrese : valor1 >> "
+      print *, "Operacion NUM PERFECTO, ingrese : valor1 y enter >> "
       read *, val1
 
       allocate (divisores(100))  
 
       esperfecto=0
       i=1
-      cuenta = 0
+      suma = 0
+
+      cuenta = 1
 
       do while(i.lt.val1)
-          if((mod(val1,i)).eq.0) then
-              cuenta=cuenta+1
+          if((mod(val1,i)).eq.0) then              
               divisores(cuenta)=i
+              cuenta=cuenta+1
           end if
           i=i+1
       enddo
 
-      do while(cuenta.gt.-1)
+      do while(cuenta.gt.0)
           suma=suma+divisores(cuenta)
           cuenta=cuenta-1
       enddo
@@ -276,21 +278,25 @@ program calculadora
       end if
       if(oper.gt.0 .or. oper.lt.SALIR) then
         resultado=execute(oper)
+        
         if(oper.eq.PRIM) then
           if(resultado.eq.1) then
             print *,"Resultado de la operacion es >> PRIMO"
           else 
             print *,"Resultado de la operacion es >> NO PRIMO"
           end if
+
         else if(oper.eq.PERF) then
           if(resultado.eq.1) then
-            print *,"Resultado de la operacion es >> PRIMO"
+            print *,"Resultado de la operacion es >> PERFECTO"
           else 
-            print *,"Resultado de la operacion es >> NO PRIMO"
+            print *,"Resultado de la operacion es >> NO PERFECTO"
           end if
         else
             print *,"Resultado de la operacion es >> ", resultado
         end if
-      endif
+
+        print *,""
+      end if
     end do
 end program calculadora
