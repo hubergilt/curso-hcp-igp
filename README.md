@@ -35,6 +35,14 @@ Ejemplos de subrutinas (paso por referencia), bloques de modulos, alias de subru
 
 Ejemplos de MPI con fortran 95, iniciar MPI con MPI_INIT, identificar el id del proceso (rankid) con MPI_COMM_RANK, obtener el numero de procesos con MPI_COMM_SIZE, enviar mensajes con MPI_SEND, recibir mensajes con MPI_RECV por el comunicador MPI_COMM_WORLD y terminar el proceso con MPI_COMM_FINALIZE. Paso de mensajes tipo datos enteros y arreglos.
 
+## Clase 9
+
+Ejemplos de MPI con fortran 95, para enviar y recibir enteros y arreglos usando MPI_SEND y MPI_RECV.
+
+## Clase 10
+
+Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI_BCAST y barreras MPI_BARRIER, partiendo datos usando scatter MPI_SCATTER, componiendo datos usando MPI_GATHER y usando operaciones de reduccion MPI_REDUCE.
+
 ## Laboratorio 1
 
 * Programar una calculador con menu con c

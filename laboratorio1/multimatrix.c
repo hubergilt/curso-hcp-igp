@@ -107,7 +107,9 @@ int main()
 		printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
 		scanf_matrix(arreglo2, &nfilas, &ncolumnas);
 
+		// printf("Ingrese elementos de la PRIMERA matriz cuadrada >>\n");
 		// rand_matrix(arreglo1, &nfilas, &ncolumnas);
+		// printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
 		// rand_matrix(arreglo2, &nfilas, &ncolumnas);
 
 		printf("\n");
