@@ -32,6 +32,18 @@ void scanf_matrix(int **arreglo1, int *nfilas, int *ncolumnas){
 	}	
 }
 
+void rand_matrix(int **arreglo1, int *nfilas, int *ncolumnas){
+	int i=0,j=0,val=0;
+	for (i=0;i<*nfilas;i++)
+	{
+		for(j=0;j<*ncolumnas;j++)
+		{
+			arreglo1[i][j]=rand()%10;
+		}
+
+	}	
+}
+
 void multi_matrix(int **arreglo1, int **arreglo2, int *nfilas, int *ncolumnas, int **resultado){
 	int i=0,j=0,k=0,sum=0;
 	
@@ -94,6 +106,9 @@ int main()
 		scanf_matrix(arreglo1, &nfilas, &ncolumnas);
 		printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
 		scanf_matrix(arreglo2, &nfilas, &ncolumnas);
+
+		// rand_matrix(arreglo1, &nfilas, &ncolumnas);
+		// rand_matrix(arreglo2, &nfilas, &ncolumnas);
 
 		printf("\n");
 		
