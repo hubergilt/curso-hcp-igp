@@ -17,8 +17,8 @@ program mult_matrix
     tamano =0
     suma_parcial=0
     suma_total=0
-    mult_parcial=0
-    mult_total=0
+    mult_parcial=1
+    mult_total=1
     print*,"Hola desde el proc ",proceso,"Existe",num_procesos
     !*******************************MAESTRO *****************************************
     if (proceso.eq.MASTER)then
