@@ -59,5 +59,19 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 * Programar una calculador con menu con fortran 95
 * Programa multiplicacion de matrices cuadras con fortran 95
 
+## Laboratorio 4
 
+* Fortran MPI tiempo
+
+## Laboratorio 5
+
+* Fortran funciones MPI (gatherm, scatter, reduce) tiempo
+
+## Laboratorio 6
+
+* Fortran HDF5 Guardar la salida
+
+## Laboratorio 7
+
+* Fortran a C
 
