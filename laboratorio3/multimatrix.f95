@@ -66,14 +66,26 @@ end module matrix
 
 program multimatrix
     use matrix
-    USE ISO_FORTRAN_ENV, ONLY : ERROR_UNIT ! access computing environment
 
     integer :: i, j, ncolumnas, nfilas, err1, err2, err3
+    character(len=30) :: arg
     real, allocatable :: arreglo1(:,:), arreglo2(:,:), resultado(:,:)
 
     err1=1
     err2=1
     err3=1
+
+    if(argc().eq.0) then
+        print *, "Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> "
+        read *, ncolumnas, nfilas
+        print *,"El numero de filas y columnas seleccionadas son >> I3 filas y I3 columnas", nfilas, ncolumnas
+    else
+        CALL getarg(1, arg)
+        
+    end if
+
+
+
 
     print *, "Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> "
     read *, ncolumnas, nfilas
@@ -85,7 +97,7 @@ program multimatrix
         allocate (resultado(nfilas,ncolumnas), stat=err3)
 
         if(err1.gt.0 .and. err2.gt.0 .and. err3.gt.0) then
-            write(ERROR_UNIT,'(a)') "Fracaso"
+            print *,"Fracaso"
         end if
 
         print *,"Ingrese elementos de la PRIMERA matriz cuadrada >>"
