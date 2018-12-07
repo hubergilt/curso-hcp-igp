@@ -69,16 +69,32 @@ void multi_matrix(int **arreglo1, int **arreglo2, int *nfilas, int *ncolumnas, i
 	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	int i=0,j=0;
 	int nfilas    = 4;
 	int ncolumnas = 4;
 	int **arreglo1, **arreglo2, **resultado;
+	int x;
 	
-	printf("Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> ");
-    scanf("%d,%d", &nfilas, &ncolumnas);	
-    printf("El numero de filas y columnas seleccionadas son >> %d filas y %d columnas\n", nfilas, ncolumnas);
+	printf("argc: %d\n", argc);
+
+	if(argc==1){
+		printf("Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> ");
+	    scanf("%d,%d", &nfilas, &ncolumnas);	
+	    printf("El numero de filas y columnas seleccionadas son >> %d filas y %d columnas\n", nfilas, ncolumnas);
+	}else{
+		if(argv[1]!=NULL || argv[1]!='\0' || !isspace(argv[1])){
+			x=atoi(argv[1]);
+			if(x>0){
+				nfilas=x;
+				ncolumnas=x;
+			}
+		}
+		else{
+			exit(1);
+		}
+	}
 
     if(nfilas==ncolumnas){
 		arreglo1 = malloc(nfilas * sizeof(int *));
@@ -102,15 +118,17 @@ int main()
 			}
 		}
 
-		printf("Ingrese elementos de la PRIMERA matriz cuadrada >>\n");
-		scanf_matrix(arreglo1, &nfilas, &ncolumnas);
-		printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
-		scanf_matrix(arreglo2, &nfilas, &ncolumnas);
-
-		// printf("Ingrese elementos de la PRIMERA matriz cuadrada >>\n");
-		// rand_matrix(arreglo1, &nfilas, &ncolumnas);
-		// printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
-		// rand_matrix(arreglo2, &nfilas, &ncolumnas);
+		if(argc==1){
+			printf("Ingrese elementos de la PRIMERA matriz cuadrada >>\n");
+			scanf_matrix(arreglo1, &nfilas, &ncolumnas);
+			printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
+			scanf_matrix(arreglo2, &nfilas, &ncolumnas);
+		}else{
+			printf("Ingrese elementos de la PRIMERA matriz cuadrada >>\n");
+			rand_matrix(arreglo1, &nfilas, &ncolumnas);
+			printf("Ingrese elementos de la SEGUNDA matriz cuadrada >>\n");
+			rand_matrix(arreglo2, &nfilas, &ncolumnas);
+		}
 
 		printf("\n");
 		

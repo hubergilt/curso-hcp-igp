@@ -40,19 +40,18 @@ contains
         end do
     end subroutine rand_matrix
 
-
     subroutine multi_matrix(arreglo1, arreglo2, nfilas, ncolumnas, resultado) 
         integer :: nfilas, ncolumnas, i , j, k
         real, allocatable :: arreglo1(:,:), arreglo2(:,:), resultado(:,:)
 
-        do i=1, nfilas
-            do j=1, ncolumnas
+        do j=1, ncolumnas
+            do i=1, nfilas
                 resultado(i, j)=0    
             end do
         end do
 
-        do i=1, nfilas
-            do j=1, ncolumnas
+        do j=1, ncolumnas
+            do i=1, nfilas
                 do k=1, ncolumnas
                     resultado(i, j)=resultado(i, j)+arreglo1(i, k)*arreglo2(k, j)   
                 end do  
@@ -63,11 +62,10 @@ contains
 
 end module matrix
 
-
 program multimatrix
     use matrix
 
-    integer :: i, j, ncolumnas, nfilas, err1, err2, err3
+    integer :: i, j, ncolumnas, nfilas, err1, err2, err3, e, x
     character(len=30) :: arg
     real, allocatable :: arreglo1(:,:), arreglo2(:,:), resultado(:,:)
 
@@ -75,21 +73,20 @@ program multimatrix
     err2=1
     err3=1
 
-    if(argc().eq.0) then
+    if(iargc().eq.0) then
         print *, "Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> "
         read *, ncolumnas, nfilas
         print *,"El numero de filas y columnas seleccionadas son >> I3 filas y I3 columnas", nfilas, ncolumnas
-    else
+    else        
         CALL getarg(1, arg)
-        
+        read(arg, *, IOSTAT=e)x
+        if(e.eq.0) then
+            nfilas = x
+            ncolumnas = x
+        else
+            stop 1
+        end if
     end if
-
-
-
-
-    print *, "Multiplicacion de Matrices Cuadradas, ingrese : nfilas,ncolumnas >> "
-    read *, ncolumnas, nfilas
-    print *,"El numero de filas y columnas seleccionadas son >> I3 filas y I3 columnas", nfilas, ncolumnas
 
     if(nfilas.eq.ncolumnas) then
         allocate (arreglo1(nfilas,ncolumnas), stat=err1)  
@@ -100,15 +97,17 @@ program multimatrix
             print *,"Fracaso"
         end if
 
-        print *,"Ingrese elementos de la PRIMERA matriz cuadrada >>"
-        call read_matrix(arreglo1, nfilas, ncolumnas)
-        print *,"Ingrese elementos de la SEGUNDA matriz cuadrada >>"
-        call read_matrix(arreglo2, nfilas, ncolumnas)
-
-        ! print *,"Ingrese elementos de la PRIMERA matriz cuadrada >>"
-        ! call rand_matrix(arreglo1, nfilas, ncolumnas)
-        ! print *,"Ingrese elementos de la SEGUNDA matriz cuadrada >>"
-        ! call rand_matrix(arreglo2, nfilas, ncolumnas)
+        if(iargc().eq.0) then
+            print *,"Ingrese elementos de la PRIMERA matriz cuadrada >>"
+            call read_matrix(arreglo1, nfilas, ncolumnas)
+            print *,"Ingrese elementos de la SEGUNDA matriz cuadrada >>"
+            call read_matrix(arreglo2, nfilas, ncolumnas)
+        else
+            print *,"Elementos de la PRIMERA matriz cuadrada >>"
+            call rand_matrix(arreglo1, nfilas, ncolumnas)
+            print *,"Elementos de la SEGUNDA matriz cuadrada >>"
+            call rand_matrix(arreglo2, nfilas, ncolumnas)
+        end if
 
         print *
 
