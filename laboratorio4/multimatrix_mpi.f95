@@ -80,7 +80,6 @@ subroutine  deallocate_matrix()
     deallocate(mr)
 end subroutine
 
-
 subroutine rand_matrix()
 
     do j=1, ma_ncol
@@ -103,7 +102,6 @@ subroutine rand_matrix()
 
 end subroutine rand_matrix
 
-
 subroutine product_matrix()
     do j=1, mb_ncol
         do i=1, ma_nfil
@@ -116,37 +114,90 @@ end subroutine
 
 end module matrix
 
-program multimatrix_seq
+program multimatrix_mpi
     use matrix
+    use mpi
     implicit none
 
+    integer, parameter :: MASTER=0
+    integer :: ierr,proceso,num_procesos, ne, p
+    integer :: status(MPI_STATUS_SIZE)
     real :: start, finish, nb
+    real, allocatable :: a(:), b(:), r(:)
 
     104 format("Multiplicacion de matrices terminada en    >> ",F10.3," segundos") 
-    105 format("Tamaño del problema, suma memoria asignada >> ",F12.0," bytes")
+    105 format("Tamano del problema, suma memoria asignada >> ",F12.0," bytes")
 
-    call multimatrix_init()
+    call config_args()
 
-    call allocate_matrix()    
-    call rand_matrix()
-    call cpu_time(start)
-    call product_matrix()
-    call cpu_time(finish)
-    write(*,104) finish-start
-
-    nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*16. ! sizeof(real)=16
-    write(*,105) nb
-    print *
-
-    if(flag.ge.1) then
-        call print_matrix()        
+    call MPI_INIT(ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,proceso,ierr)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,num_procesos,ierr)
+    ne = int(ma_nfil*mb_ncol/num_procesos)
+    print *,ma_nfil, mb_ncol, num_procesos, ne
+    if(ne.lt.1) then
+        print *, "Error numero de elementos vacio"
+        stop 1
     end if
 
-    call deallocate_matrix()
+    if(proceso.eq.MASTER) then 
+        call allocate_matrix()
+        call rand_matrix()
+        call cpu_time(start)
+        
+        allocate(a(ma_ncol))
+
+        a = ma(1,:)
+        b = mb(:,1)
+
+        do p=1,num_procesos-1
+            ! call MPI_SEND(ne,1,MPI_INTEGER,p,201,MPI_COMM_WORLD,ierr)
+            print *, "ENVIO el valor de ne: ",ne
+            ! call MPI_SEND(ma_ncol,1,MPI_INTEGER,p,202,MPI_COMM_WORLD,ierr)
+            print *, "ENVIO el valor de nfilcol: ",ma_ncol
+            call MPI_SEND(a,ma_ncol,MPI_REAL,p,203,MPI_COMM_WORLD,ierr)
+            print *, "ENVIO el valor de a: ",a
+            call MPI_SEND(b,ma_ncol,MPI_REAL,p,204,MPI_COMM_WORLD,ierr)
+            print *, "ENVIO el valor de b: ",b     
+        end do
+
+    else
+        ! call MPI_RECV(ne,1,MPI_INTEGER,0,201,MPI_COMM_WORLD,status,ierr)            
+        print *, "RECIBO el valor de ne: ",ne
+        ! call MPI_RECV(ma_ncol,1,MPI_INTEGER,0,202,MPI_COMM_WORLD,status,ierr)            
+        print *, "RECIBO el valor de nfilcol: ",ma_ncol
+        allocate(a(ma_ncol))
+        call MPI_RECV(a,ma_ncol,MPI_REAL,0,203,MPI_COMM_WORLD,status,ierr)            
+        print *, "RECIBO el valor de a: ",a
+        allocate(b(ma_ncol))
+        call MPI_RECV(b,ma_ncol,MPI_REAL,0,204,MPI_COMM_WORLD,status,ierr) 
+        print *, "RECIBO el valor de b: ",b
+    end if
+
+    !call product_matrix()
+
+    call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    if(proceso.eq.MASTER) then 
+        call cpu_time(finish)
+        write(*,104) finish-start
+
+        nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*16. ! sizeof(real)=16
+        write(*,105) nb
+        print *    
+
+        if(flag.ge.1) then
+            call print_matrix()        
+        end if
+
+        call deallocate_matrix()
+    end if    
+
+    call MPI_FINALIZE(ierr)
 
 contains
 
-    subroutine multimatrix_init()
+
+    subroutine config_args()
         integer :: x
 
         100 format("Ingrese orden de las matrices i,j,k")
@@ -214,6 +265,6 @@ contains
         ma_ncol=j
         mb_nfil=j
         mb_ncol=k
-    end subroutine multimatrix_init
+    end subroutine config_args
 
-end program multimatrix_seq
+end program multimatrix_mpi
