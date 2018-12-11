@@ -112,7 +112,7 @@ end subroutine rand_matrix
 !     end do      
 ! end subroutine
 
-end module matrix
+! end module matrix
 
 program multimatrix_mpi
     use matrix
@@ -120,201 +120,123 @@ program multimatrix_mpi
     implicit none
 
     integer, parameter :: MASTER=0
-    integer :: ierr,proceso,num_procesos, ne, p, h, g, f, flg
+    integer :: ierr,proceso,num_procesos, ne, p, h, g, f
     integer :: status(MPI_STATUS_SIZE)
     real :: start, finish, nb
     real, allocatable :: a(:), b(:), r(:)
-    real, allocatable :: ga(:,:), gb(:,:)
-
 
     104 format("Multiplicacion de matrices terminada en    >> ",F10.3," segundos") 
     105 format("Tamano del problema, suma memoria asignada >> ",F12.0," bytes")
 
     call config_args()
-    flg = 0
 
     call MPI_INIT(ierr)
     call MPI_COMM_RANK(MPI_COMM_WORLD,proceso,ierr)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,num_procesos,ierr)
     ne = int(ma_nfil*mb_ncol/num_procesos)
+    !print *,ma_nfil, mb_ncol, num_procesos, ne
     if(ne.lt.1) then
         print *, "Error numero de elementos vacio"
         stop 1
     end if
 
-    allocate(a(ma_ncol))
-    allocate(b(ma_ncol))
-    allocate(r(ne)) 
-
-    do j=1,ne
-        r(j)=0
-    end do   
-
     if(proceso.eq.MASTER) then 
         call allocate_matrix()
         call rand_matrix()
         call cpu_time(start)
+        
+        allocate(a(ma_ncol))
+        allocate(b(ma_ncol))
+
+        a = ma(1,:)
+        b = mb(:,1)
 
         do p=1,num_procesos-1
             call MPI_SEND(ne,1,MPI_INTEGER,p,201,MPI_COMM_WORLD,ierr)
-            
-            f=p*ne+1
+            !print *, "ENVIO el valor de ne: ",ne      
 
-            do g=f, f+(ne-1)
+            h=1
+            f=p*ne+h
+            !print *, "ENVIO elementos f: ",f,"y el rango: "
 
-                flg = 0
+            ! do g=f, f + (ne-1)
+                !write(*,"(I4) ",advance="no") g
+                !i=p-1
+                !do k=1, g-mb_ncol*i
+                !    print *, "ENVIO indices i: ",i,", k: ",k
+                    !call MPI_SEND(ma(i,:),ma_ncol,MPI_REAL,p,1000+g+k,MPI_COMM_WORLD,ierr)
+                !end do                
+            ! end do
+            ! print *
+
+            do g=f, f + (ne-1)
                 do i=1,ma_nfil
-
                     do k=1,mb_ncol
                         if(g.eq.(mb_ncol*(i-1)+k)) then                            
                             call MPI_SEND(ma(i,:),ma_ncol,MPI_REAL,p,10000+g+i+k,MPI_COMM_WORLD,ierr)
+                            print *, "ENVIO indices i: ",i,", k: ",k, "para ma(i,:)"
                             call MPI_SEND(mb(:,k),ma_ncol,MPI_REAL,p,20000+g+i+k,MPI_COMM_WORLD,ierr)
-                            flg=1                            
-                            exit
+                            print *, "ENVIO indices i: ",i,", k: ",k, "para mb(:,k)"
                         end if
-                    end do
-
-                    if (flg.eq.1) then
-                       exit
-                    end if
-
+                    end do 
                 end do
             end do
 
         end do
 
-        do g=1, ne
-            flg = 0
+   
+
+    else
+        call MPI_RECV(ne,1,MPI_INTEGER,0,201,MPI_COMM_WORLD,status,ierr)            
+        print *, "RECIBO el valor de ne: ",ne
+
+        allocate(a(ma_ncol))
+        allocate(b(ma_ncol))
+        allocate(r(ma_ncol))
+
+        h=1
+        f=proceso*ne+h
+        print *, "RECIBO elementos f: ",f,"y el rango: "
+
+        do g=f, f + (ne-1)
             do i=1,ma_nfil
                 do k=1,mb_ncol
                     if(g.eq.(mb_ncol*(i-1)+k)) then                            
-                        a = ma(i,:)
-                        b = mb(:,k)
-
-                        do j=1,ma_ncol
-                            r(g)=r(g)+a(j)*b(j)
-                        end do
-
-                        flg=1                            
-                        exit
-
-                    end if                
-                end do
-
-                if (flg.eq.1) then
-                   exit
-                end if                
-
-            end do
-        end do
-
-    else
-        call MPI_RECV(ne,1,MPI_INTEGER,0,201,MPI_COMM_WORLD,status,ierr)
-
-        allocate(ga(ne,ma_ncol))
-        allocate(gb(ne,ma_ncol))                  
-
-        f=proceso*ne+1
-
-        do g=f, f+(ne-1)
-            flg = 0
-            do i=1,ma_nfil
-                do k=1,mb_ncol
-                    if(g.eq.(mb_ncol*(i-1)+k)) then                     
                         call MPI_RECV(a,ma_ncol,MPI_REAL,0,10000+g+i+k,MPI_COMM_WORLD,status,ierr)
-                        call MPI_RECV(b,ma_ncol,MPI_REAL,0,20000+g+i+k,MPI_COMM_WORLD,status,ierr)      
-
-                        ga(g, :) = a
-                        gb(g, :) = b
-                       
-
-                        flg=1                            
-                        exit
-
+                        print *, "RECIBO indices i: ",i,", k: ",k, "para ma(i,:)"
+                        call MPI_RECV(b,ma_ncol,MPI_REAL,0,20000+g+i+k,MPI_COMM_WORLD,status,ierr)
+                        print *, "RECIBO indices i: ",i,", k: ",k, "para mb(:,k)"                        
                     end if
-                end do
-
-                if (flg.eq.1) then
-                   exit
-                end if
-
+                end do 
             end do
         end do
 
-        do g=f, f+(ne-1)
-
-            a = ga(g, :)
-            b = gb(g, :)
-
-            r(g)=0
-
-            do j=1,ma_ncol
-                r(g)=r(g)+a(j)*b(j)
-            end do            
-
-        end do
-
-        call MPI_SEND(r,ne,MPI_REAL,0,30000+proceso,MPI_COMM_WORLD,ierr)
-
-        deallocate(ga)
-        deallocate(gb)         
 
     end if
 
+    allocate(r(ma_ncol))
+
+
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-    if(proceso.eq.MASTER) then
+    h=1
+    f=proceso*ne+h
 
-        do g=1, ne
-            flg = 0    
-            do i=1,ma_nfil
-                do k=1,mb_ncol
-                    if(g.eq.(mb_ncol*(i-1)+k)) then
-                        mr(i, k) = r(g)
+    do g=f, f + (ne-1)
+        do i=1,ma_nfil
+            do k=1,mb_ncol
+                if(g.eq.(mb_ncol*(i-1)+k)) then
 
-                        flg=1                            
-                        exit
-
-                    end if
-                end do
-
-                if (flg.eq.1) then
-                   exit
                 end if
-
-            end do
+            end do 
         end do
+    end do
 
-        flg = 0        
+    if(proceso.eq.MASTER) then 
 
-        do p=1,num_procesos-1
+    end
 
-            call MPI_RECV(r,ne,MPI_REAL,p,30000+p,MPI_COMM_WORLD,status,ierr)
-
-            f=p*ne+1
-            do g=f, f+(ne-1)
-                print *,"recv r",r, ne            
-                call MPI_RECV(r,ne,MPI_REAL,p,30000+g,MPI_COMM_WORLD,status,ierr)                
-                flg = 0
-                do i=1,ma_nfil
-                    do k=1,mb_ncol
-                        if(g.eq.(mb_ncol*(i-1)+k)) then
-                            mr(i, k) = r(g)
-
-                            flg=1                            
-                            exit
-
-                        end if
-                    end do
-
-                    if (flg.eq.1) then
-                        exit
-                    end if
-
-                end do
-            end do
-        end do
-
+    if(proceso.eq.MASTER) then 
         call cpu_time(finish)
         write(*,104) finish-start
 
@@ -327,16 +249,12 @@ program multimatrix_mpi
         end if
 
         call deallocate_matrix()
-
-    end if
-
-    deallocate(a)
-    deallocate(b)
-    deallocate(r)        
+    end if    
 
     call MPI_FINALIZE(ierr)
 
 contains
+
 
     subroutine config_args()
         integer :: x
