@@ -250,11 +250,14 @@ program multimatrix_mpi
 
             do j=1,ma_ncol
                 r(g)=r(g)+a(j)*b(j)
-            end do            
+            end do 
+
 
         end do
 
-        call MPI_SEND(r,ne,MPI_REAL,0,30000+proceso,MPI_COMM_WORLD,ierr)
+        do g=f, f+(ne-1)
+            call MPI_SEND(r(g),ne,MPI_REAL,0,30000+g,MPI_COMM_WORLD,ierr)            
+        end do
 
         deallocate(ga)
         deallocate(gb)         
@@ -288,15 +291,12 @@ program multimatrix_mpi
         flg = 0        
 
         do p=1,num_procesos-1
-
-            call MPI_RECV(r,ne,MPI_REAL,p,30000+p,MPI_COMM_WORLD,status,ierr)
-
             f=p*ne+1
             do g=f, f+(ne-1)
-                print *,"recv r",r, ne            
-                call MPI_RECV(r,ne,MPI_REAL,p,30000+g,MPI_COMM_WORLD,status,ierr)                
+                call MPI_RECV(r(g),ne,MPI_REAL,p,30000+g,MPI_COMM_WORLD,status,ierr)
                 flg = 0
                 do i=1,ma_nfil
+
                     do k=1,mb_ncol
                         if(g.eq.(mb_ncol*(i-1)+k)) then
                             mr(i, k) = r(g)
