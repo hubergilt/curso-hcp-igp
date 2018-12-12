@@ -102,16 +102,6 @@ subroutine rand_matrix()
 
 end subroutine rand_matrix
 
-! subroutine product_matrix()
-!     do j=1, mb_ncol
-!         do i=1, ma_nfil
-!             do k=1, ma_ncol
-!                 mr(i, j)=mr(i, j)+ma(i, k)*mb(k, j)
-!             end do
-!         end do
-!     end do      
-! end subroutine
-
 end module matrix
 
 program multimatrix_mpi
@@ -213,9 +203,9 @@ program multimatrix_mpi
 
         allocate(ga(ne,ma_ncol))
         allocate(gb(ne,ma_ncol))                  
+        j=1
 
         f=proceso*ne+1
-
         do g=f, f+(ne-1)
             flg = 0
             do i=1,ma_nfil
@@ -224,10 +214,9 @@ program multimatrix_mpi
                         call MPI_RECV(a,ma_ncol,MPI_REAL,0,10000+g+i+k,MPI_COMM_WORLD,status,ierr)
                         call MPI_RECV(b,ma_ncol,MPI_REAL,0,20000+g+i+k,MPI_COMM_WORLD,status,ierr)      
 
-                        ga(g, :) = a
-                        gb(g, :) = b
-                       
-
+                        ga(j, :) = a
+                        gb(j, :) = b
+                        j=j+1
                         flg=1                            
                         exit
 
@@ -241,23 +230,18 @@ program multimatrix_mpi
             end do
         end do
 
-        do g=f, f+(ne-1)
-
+        do g=1, ne
             a = ga(g, :)
             b = gb(g, :)
-
             r(g)=0
 
             do j=1,ma_ncol
                 r(g)=r(g)+a(j)*b(j)
             end do 
 
-
         end do
 
-        do g=f, f+(ne-1)
-            call MPI_SEND(r(g),ne,MPI_REAL,0,30000+g,MPI_COMM_WORLD,ierr)            
-        end do
+        call MPI_SEND(r,ne,MPI_REAL,0,30000+proceso,MPI_COMM_WORLD,ierr)
 
         deallocate(ga)
         deallocate(gb)         
@@ -288,15 +272,13 @@ program multimatrix_mpi
             end do
         end do
 
-        flg = 0        
-
         do p=1,num_procesos-1
+            call MPI_RECV(r,ne,MPI_REAL,p,30000+p,MPI_COMM_WORLD,status,ierr)
             f=p*ne+1
             do g=f, f+(ne-1)
-                call MPI_RECV(r(g),ne,MPI_REAL,p,30000+g,MPI_COMM_WORLD,status,ierr)
+                
                 flg = 0
                 do i=1,ma_nfil
-
                     do k=1,mb_ncol
                         if(g.eq.(mb_ncol*(i-1)+k)) then
                             mr(i, k) = r(g)
