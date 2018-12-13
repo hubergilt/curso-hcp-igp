@@ -17,7 +17,7 @@ module matrix
     character(len=10), dimension(3) :: args
 
 contains
-
+ 
 subroutine print_matrix() 
     integer :: nfilas, ncolumnas, i , j
     real, allocatable :: arreglo1(:,:)
@@ -274,14 +274,14 @@ program multimatrix_mpi
 
         do p=1,num_procesos-1
             call MPI_RECV(r,ne,MPI_REAL,p,30000+p,MPI_COMM_WORLD,status,ierr)
-            f=p*ne+1
-            do g=f, f+(ne-1)
-                
+            
+            do h=1, ne
+                g=p*ne+h
                 flg = 0
                 do i=1,ma_nfil
                     do k=1,mb_ncol
                         if(g.eq.(mb_ncol*(i-1)+k)) then
-                            mr(i, k) = r(g)
+                            mr(i, k) = r(h)
 
                             flg=1                            
                             exit
@@ -292,7 +292,6 @@ program multimatrix_mpi
                     if (flg.eq.1) then
                         exit
                     end if
-
                 end do
             end do
         end do
