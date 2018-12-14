@@ -110,7 +110,7 @@ program multimatrix_mpi
     implicit none
 
     integer, parameter :: MASTER=0
-    integer :: ierr,proceso,num_procesos, ne, p, h, g, f, flg
+    integer :: ierr,proceso,num_procesos, ne, p, h, g, f, flg, resto
     integer :: status(MPI_STATUS_SIZE)
     real :: start, finish, nb
     real, allocatable :: a(:), b(:), r(:)
@@ -127,6 +127,7 @@ program multimatrix_mpi
     call MPI_COMM_RANK(MPI_COMM_WORLD,proceso,ierr)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,num_procesos,ierr)
     ne = int(ma_nfil*mb_ncol/num_procesos)
+
     if(ne.lt.1) then
         print *, "Error numero de elementos vacio"
         stop 1
@@ -198,6 +199,37 @@ program multimatrix_mpi
             end do
         end do
 
+        resto = mod(ma_nfil*mb_ncol,num_procesos)
+        call MPI_SEND(resto,1,MPI_INTEGER,num_procesos-1,202,MPI_COMM_WORLD,ierr)
+
+        if(resto.gt.0) then
+
+            p=num_procesos-1
+            f=(p+1)*ne+1
+
+            do g=f, f+resto
+
+                flg = 0
+                do i=1,ma_nfil
+
+                    do k=1,mb_ncol
+                        if(g.eq.(mb_ncol*(i-1)+k)) then                            
+                            call MPI_SEND(ma(i,:),ma_ncol,MPI_REAL,p,40000+g+i+k,MPI_COMM_WORLD,ierr)
+                            call MPI_SEND(mb(:,k),ma_ncol,MPI_REAL,p,50000+g+i+k,MPI_COMM_WORLD,ierr)
+                            flg=1                            
+                            exit
+                        end if
+                    end do
+
+                    if (flg.eq.1) then
+                       exit
+                    end if
+
+                end do
+            end do
+
+        end if
+
     else
         call MPI_RECV(ne,1,MPI_INTEGER,0,201,MPI_COMM_WORLD,status,ierr)
 
@@ -244,9 +276,67 @@ program multimatrix_mpi
         call MPI_SEND(r,ne,MPI_REAL,0,30000+proceso,MPI_COMM_WORLD,ierr)
 
         deallocate(ga)
-        deallocate(gb)         
+        deallocate(gb)        
 
     end if
+
+    if(proceso.eq.(num_procesos-1)) then
+        call MPI_RECV(resto,1,MPI_INTEGER,0,202,MPI_COMM_WORLD,status, ierr)
+
+        if(resto.gt.0) then
+
+            allocate(ga(resto,ma_ncol))
+            allocate(gb(resto,ma_ncol))                  
+            j=1
+
+            p=num_procesos-1
+            do h = 1, resto
+                f=(proceso+1)*ne+h
+                do g=f, f+(ne-1)
+                    flg = 0
+                    do i=1,ma_nfil
+
+                        do k=1,mb_ncol
+                            if(g.eq.(mb_ncol*(i-1)+k)) then 
+                                call MPI_RECV(a,ma_ncol,MPI_REAL,0,40000+g+i+k,MPI_COMM_WORLD,status,ierr)
+                                call MPI_RECV(b,ma_ncol,MPI_REAL,0,50000+g+i+k,MPI_COMM_WORLD,status,ierr)      
+
+                                ga(j, :) = a
+                                gb(j, :) = b
+                                j=j+1
+                                flg=1
+
+                                exit
+                            end if
+                        end do
+
+                        if (flg.eq.1) then
+                           exit
+                        end if
+
+                    end do            
+                end do           
+            end do
+
+            do g=1, ne
+                a = ga(g, :)
+                b = gb(g, :)
+                r(g)=0
+
+                do j=1,ma_ncol
+                    r(g)=r(g)+a(j)*b(j)
+                end do 
+
+            end do
+
+            call MPI_SEND(r,ne,MPI_REAL,0,60000+proceso,MPI_COMM_WORLD,ierr)
+
+            deallocate(ga)
+            deallocate(gb)
+
+        end if
+      
+    end if  
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
@@ -295,6 +385,31 @@ program multimatrix_mpi
                 end do
             end do
         end do
+
+
+        if(resto.gt.0) then
+            p=num_procesos-1
+            call MPI_RECV(r,ne,MPI_REAL,p,60000+p,MPI_COMM_WORLD,status,ierr)
+            do h=1, resto
+                g=(p+1)*ne+h
+                flg = 0
+                do i=1,ma_nfil
+                    do k=1,mb_ncol
+                        if(g.eq.(mb_ncol*(i-1)+k)) then
+                            mr(i, k) = r(resto)
+
+                            flg=1                            
+                            exit
+
+                        end if
+                    end do
+
+                    if (flg.eq.1) then
+                        exit
+                    end if
+                end do
+            end do
+        end if
 
         call cpu_time(finish)
         write(*,104) finish-start
