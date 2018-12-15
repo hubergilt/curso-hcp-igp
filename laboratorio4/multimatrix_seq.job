@@ -4,9 +4,9 @@
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
 #SBATCH --nodelist=n20
-#SBATCH --ntasks=24
+#SBATCH --ntasks=1
 gfortran ./multimatrix_seq.f95 -o ./multimatrix_seq.exe
-# ./multimatrix_seq.exe 2000,2000,2000 1
+./multimatrix_seq.exe 2000,2000,2000 1
 # ./multimatrix_seq.exe 1500,1500,1500 1
 # ./multimatrix_seq.exe 1000,1500,1500 1
 # ./multimatrix_seq.exe 1000,1000,1500 1
@@ -14,7 +14,8 @@ gfortran ./multimatrix_seq.f95 -o ./multimatrix_seq.exe
 # ./multimatrix_seq.exe 1000,1000,500 1
 # ./multimatrix_seq.exe 1000,500,500 1
 # ./multimatrix_seq.exe 500,500,500 1
-./multimatrix_seq.exe 10,10,10 1
-./multimatrix_seq.exe 100,100,100 1
-./multimatrix_seq.exe 1000,1000,1000 1
-./multimatrix_seq.exe 10000,10000,10000 1
+
+# ./multimatrix_seq.exe 10,10,10 1
+# ./multimatrix_seq.exe 100,100,100 1
+# ./multimatrix_seq.exe 1000,1000,1000 1
+# ./multimatrix_seq.exe 10000,10000,10000 1

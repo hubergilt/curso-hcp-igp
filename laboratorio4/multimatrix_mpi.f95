@@ -126,6 +126,8 @@ program multimatrix_mpi
     call MPI_INIT(ierr)
     call MPI_COMM_RANK(MPI_COMM_WORLD,proceso,ierr)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,num_procesos,ierr)
+    
+    !calulamos el numero elementos por proceso
     ne = int(ma_nfil*mb_ncol/num_procesos)
 
     if(ne.lt.1) then
@@ -137,15 +139,15 @@ program multimatrix_mpi
     allocate(b(ma_ncol))
     allocate(r(ne)) 
 
-    do j=1,ne
-        r(j)=0
-    end do   
+    r=0
 
+    !el proceso 0, reparte trabajos a los demas procesos
     if(proceso.eq.MASTER) then 
         call allocate_matrix()
         call rand_matrix()
         call cpu_time(start)
 
+        !el proceso 0 envia a cada proceso un numero de filas y columnas dado por ne
         do p=1,num_procesos-1
             call MPI_SEND(ne,1,MPI_INTEGER,p,201,MPI_COMM_WORLD,ierr)
             
@@ -174,6 +176,7 @@ program multimatrix_mpi
 
         end do
 
+        !el proceso 0, realiza la multiplicacion de las primeras "ne" filas y columnas 
         do g=1, ne
             flg = 0
             do i=1,ma_nfil
@@ -199,6 +202,7 @@ program multimatrix_mpi
             end do
         end do
 
+        !el proceso 0, procesa la multiplicacion del resto de elementos
         resto = mod(ma_nfil*mb_ncol,num_procesos)
         call MPI_SEND(resto,1,MPI_INTEGER,num_procesos-1,202,MPI_COMM_WORLD,ierr)
 
@@ -234,9 +238,10 @@ program multimatrix_mpi
         call MPI_RECV(ne,1,MPI_INTEGER,0,201,MPI_COMM_WORLD,status,ierr)
 
         allocate(ga(ne,ma_ncol))
-        allocate(gb(ne,ma_ncol))                  
-        j=1
+        allocate(gb(ne,ma_ncol))    
 
+        !cada proceso diferente del proceso 0, guarda las filas y columnas en arreglos
+        j=1
         f=proceso*ne+1
         do g=f, f+(ne-1)
             flg = 0
@@ -262,6 +267,8 @@ program multimatrix_mpi
             end do
         end do
 
+
+        !cada proceso diferente al proceso 0, realiza la multiplicacion
         do g=1, ne
             a = ga(g, :)
             b = gb(g, :)
@@ -273,6 +280,7 @@ program multimatrix_mpi
 
         end do
 
+        !devuelve el resultado de cada proceso
         call MPI_SEND(r,ne,MPI_REAL,0,30000+proceso,MPI_COMM_WORLD,ierr)
 
         deallocate(ga)
@@ -280,6 +288,7 @@ program multimatrix_mpi
 
     end if
 
+    !el ultimo proceso realiza el trabajo con el resto de elementos
     if(proceso.eq.(num_procesos-1)) then
         call MPI_RECV(resto,1,MPI_INTEGER,0,202,MPI_COMM_WORLD,status, ierr)
 
@@ -340,8 +349,10 @@ program multimatrix_mpi
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+    !el proceso 0, compone todos los resultados en la matrix resultado
     if(proceso.eq.MASTER) then
 
+        !guarda el resultado de proceso 0, en la matrix resultado
         do g=1, ne
             flg = 0    
             do i=1,ma_nfil
@@ -362,6 +373,7 @@ program multimatrix_mpi
             end do
         end do
 
+        !guarda el resultado de demas procesos diferente al proceso 0, en la matrix resultado
         do p=1,num_procesos-1
             call MPI_RECV(r,ne,MPI_REAL,p,30000+p,MPI_COMM_WORLD,status,ierr)
             
@@ -386,7 +398,7 @@ program multimatrix_mpi
             end do
         end do
 
-
+        !guarda el resultado del ultimo proceso si hay resto, en la matrix resultado
         if(resto.gt.0) then
             p=num_procesos-1
             call MPI_RECV(r,ne,MPI_REAL,p,60000+p,MPI_COMM_WORLD,status,ierr)
@@ -411,6 +423,7 @@ program multimatrix_mpi
             end do
         end if
 
+        !calcula el tiempo que toma el proceso y la memoria asignada
         call cpu_time(finish)
         write(*,104) finish-start
 

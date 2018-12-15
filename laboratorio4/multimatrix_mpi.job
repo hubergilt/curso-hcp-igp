@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --job-name=multimpi
+#SBATCH --partition=mpi_long2
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
+#SBATCH --nodes=10
+#SBATCH --ntasks=10
+module load gnu/4.8.5 
+module load gnu_mvapich2/2.3.0
+mpifort multimatrix_mpi.f95 -o multimatrix_mpi.exe
+for p in {10..10}; do 
+    mpirun -np ${p} ./multimatrix_mpi.exe 2000,2000,2000 1
+done;
