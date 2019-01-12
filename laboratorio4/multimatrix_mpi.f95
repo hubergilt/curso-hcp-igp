@@ -18,35 +18,33 @@ module matrix
 
 contains
  
-subroutine print_matrix() 
-    integer :: nfilas, ncolumnas, i , j
-    real, allocatable :: arreglo1(:,:)
+subroutine print_matrix()
 
-    101 format("El orden seleccionado para la ",A10," matrix es >> (",I4,",",I4,") ")
-    102 format("El resultado de la Multiplicacion de matrices es >> (",I4,",",I4,")")
-    106 format("(",I4,",",I4,")=",F16.8," ")
+    101 format("El orden seleccionado para la PRIMERA matrix es   >> (",I4,",",I4,") ")
+    102 format("El orden seleccionado para la SEGUNDA matrix es   >> (",I4,",",I4,") ")
+    103 format("El orden seleccionado para la matrix RESULTADO es >> (",I4,",",I4,") ")
 
-    write(*,101) "PRIMERA", ma_nfil, ma_ncol
+    write(*,101) ma_nfil, ma_ncol
     do i=1, ma_nfil
         do j=1, ma_ncol
-            write (*, 106, advance="no") i, j, ma(i, j)
+            write (*, "(F8.2)", advance="no") ma(i, j)
         end do
         print *
     end do
 
-    write(*,101) "SEGUNDA", mb_nfil, mb_ncol
+    write(*,102) mb_nfil, mb_ncol
     do i=1, mb_nfil
         do j=1, mb_ncol
-            write (*, 106, advance="no") i, j, mb(i, j)           
+            write (*, "(F8.2)", advance="no") mb(i, j)
         end do
-        print *
+        print *        
     end do
 
-    write(*,102) ma_nfil, mb_ncol
+    write(*,103) ma_nfil, mb_ncol
     do i=1, ma_nfil
         do j=1, mb_ncol
-            write (*, 106, advance="no") i, j, mr(i, j)           
-        end do
+            write (*, "(F8.2)", advance="no") mr(i, j)
+        end do        
         print *
     end do
 

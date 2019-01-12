@@ -3,44 +3,52 @@ module matrix
     implicit none
     real(8), allocatable :: ma(:,:), mb(:,:), mr(:,:)
     real(8), allocatable :: ra(:,:), rb(:,:), rr(:,:), ta(:,:)
-    integer :: ma_nfil, ma_ncol
-    integer :: mb_nfil, mb_ncol
-    integer :: i, j, k
+    integer :: ni, nj, nk, i, j, k
 
 contains
  
 subroutine print_matrix()
 
-    101 format("El orden seleccionado para la ",A10," matrix es >> (",I4,",",I4,") ")
-    102 format("El resultado de la Multiplicacion de matrices es >> (",I4,",",I4,")")
+    101 format("El orden seleccionado para la PRIMERA matrix es   >> (",I4,",",I4,") ")
+    102 format("El orden seleccionado para la SEGUNDA matrix es   >> (",I4,",",I4,") ")
+    103 format("El orden seleccionado para la matrix RESULTADO es >> (",I4,",",I4,") ")
 
-    write(*,101) "PRIMERA", ma_nfil, ma_ncol
-    do i=1, ma_nfil
-        print *, (ma(i, j), j=1, ma_ncol)
+    write(*,101) ni, nj
+    do i=1, ni
+        do j=1, nj
+            write (*, "(F8.2)", advance="no") ma(i, j)
+        end do
+        print *
     end do
 
-    write(*,101) "SEGUNDA", mb_nfil, mb_ncol
-    do i=1, mb_nfil
-        print *, (mb(i, j), j=1, mb_ncol)
+    write(*,102) nj, nk
+    do i=1, nj
+        do j=1, nk
+            write (*, "(F8.2)", advance="no") mb(i, j)
+        end do
+        print *        
     end do
 
-    write(*,102) ma_nfil, mb_ncol
-    do i=1, ma_nfil
-        print *, (mr(i, j), j=1, mb_ncol)
+    write(*,103) ni, nk
+    do i=1, ni
+        do j=1, nk
+            write (*, "(F8.2)", advance="no") mr(i, j)
+        end do        
+        print *
     end do
 
 end subroutine print_matrix
 
 subroutine allocate_matrix() 
-    allocate(ma(ma_nfil,ma_ncol))  
-    allocate(mb(mb_nfil,mb_ncol))  
-    allocate(mr(ma_nfil,mb_ncol))
+    allocate(ma(ni,nj))  
+    allocate(mb(nj,nk))  
+    allocate(mr(ni,nk))
     
-    allocate(ra(1,ma_nfil*ma_ncol))  
-    allocate(rb(1,mb_nfil*mb_ncol))  
-    allocate(rr(1,ma_nfil*mb_ncol))
+    allocate(ra(1,ni*nj))  
+    allocate(rb(1,nj*nk))  
+    allocate(rr(1,ni*nk))
 
-    allocate(ta(mb_ncol,mb_nfil))  
+    allocate(ta(nj,ni))  
 end subroutine
 
 subroutine  deallocate_matrix()
@@ -50,24 +58,24 @@ subroutine  deallocate_matrix()
 end subroutine
 
 subroutine rand_ma()
-    do j=1, ma_ncol
-        do i=1, ma_nfil        
+    do j=1, nj
+        do i=1, ni        
             ma(i, j)=rand(0)*10+1   
         end do
     end do
 end subroutine rand_ma
 
 subroutine rand_mb()
-    do j=1, mb_ncol
-        do i=1, mb_nfil
+    do j=1, nk
+        do i=1, nj
             mb(i, j)=rand(0)*10+1                       
         end do
     end do
 end subroutine rand_mb
 
 subroutine rand_mr()
-    do j=1, mb_ncol
-        do i=1, ma_nfil
+    do j=1, nk
+        do i=1, ni
             mr(i, j)=0                        
         end do
     end do    
@@ -75,8 +83,8 @@ end subroutine rand_mr
 
 subroutine reshape_matrix()
     ta = transpose(ma)
-    ra = reshape(source=ta, shape=[1, ma_nfil*ma_ncol])
-    rb = reshape(source=mb, shape=[1, mb_nfil*mb_ncol])
+    ra = reshape(source=ta, shape=[1, ni*nj])
+    rb = reshape(source=mb, shape=[1, nj*nk])
 end subroutine reshape_matrix
 
 end module matrix
@@ -87,40 +95,39 @@ program main
     implicit none
 
     integer, parameter :: MASTER=0
-    integer :: ierr,proceso,num_procesos, ne, p, h, g, f, flg, resto, pflag
+    integer :: ierr, proceso, np, ne, p, h, g, f, flg, re, pflag, ini, fin, len
     integer :: status(MPI_STATUS_SIZE)
     real(8) :: start, finish, nb
 
     real(8), allocatable :: a(:), b(:), r(:)
 
-    104 format("Multiplicacion de matrices terminada en     >> ",F10.3," segundos") 
-    105 format("Tamano del problema, suma memoria asignada  >> ",F12.0," bytes")
-    106 format("Resevacion dinamica de memoria terminada en >> ",F10.3," segundos") 
-    107 format("Asignacion aleatoria de valores terminada en>> ",F10.3," segundos") 
-    108 format("Transformacion de dimensiones terminada en  >> ",F10.3," segundos") 
+    104 format("Multiplicacion terminada en >> ",F10.3," segundos") 
+    105 format("Tamano de  memoria asignada >> ",F12.0," bytes")
+    106 format("Resevacion mem terminada en >> ",F10.3," segundos") 
+    107 format("Asig aleatoria terminada en >> ",F10.3," segundos") 
+    108 format("Transformacion terminada en >> ",F10.3," segundos") 
 
     call config_args()
     flg = 0
 
     call MPI_INIT(ierr)
     call MPI_COMM_RANK(MPI_COMM_WORLD,proceso,ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,num_procesos,ierr)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,np,ierr)
     
     !calulamos el numero elementos por proceso
-    ne = int(ma_nfil*mb_ncol/num_procesos)
+    ne = int(ni*nk/np)
 
     !calulamos si existe el resto de elementos
-    resto = mod(ma_nfil*mb_ncol,num_procesos)
+    re = mod(ni*nk,np)
 
     if(ne.lt.1) then
         print *, "Error numero de elementos vacio"
         stop 1
     end if
 
-    allocate(r(ne)) 
-
     !El proceso 0, reparte trabajos a los demas procesos
     if(proceso.eq.MASTER) then
+
         call cpu_time(start)
         call allocate_matrix()
         call cpu_time(finish)
@@ -140,119 +147,75 @@ program main
 
         call cpu_time(start)
 
-        !El proceso 0 envia a cada proceso una parte de la matrix proporcional al num_procesos        
-        do p=1,num_procesos-1
-            call MPI_SEND(ra(1,:),ma_nfil*ma_ncol,MPI_REAL8,p,1000+p,MPI_COMM_WORLD,ierr)
-            g=p*ne+1
-            call MPI_SEND(rb(1,g:g+(ma_ncol-1)),ma_ncol,MPI_REAL8,p,2000+p,MPI_COMM_WORLD,ierr)
-        end do
+        call descompose_matrix()
 
-        !El proceso 0, realiza la multiplicacion correspondiente a su parte
-        g=proceso*ne+1
-        j=int(ne/ma_ncol)
-        do h=1,ne
-            f=mod((h-1),j)*ma_ncol+1
-            print *, "ra(1,f:f+(ma_ncol-1)) :", ra(1,f:f+(ma_ncol-1)), "f",f,"->", f+(ma_ncol-1)
-            ! print *, "rb(1,g:g+(ma_ncol-1)) :", rb(1,g:g+(ma_ncol-1)), "g",g, g+(ma_ncol-1)
-            r(h)=dot_product(ra(1,f:f+(ma_ncol-1)),rb(1,g:g+(ma_ncol-1)))
-        end do
-
-        !Si hay resto, el proceso 0 envia el resto al ultimo proceso
-        if(resto.gt.0) then
-            p=num_procesos-1
-            g=(p+1)*ne+1
-            call MPI_SEND(rb(1,g:g+(resto-1)),resto,MPI_REAL8,p,4000+p,MPI_COMM_WORLD,ierr)
-        end if
+        call dot_product_matrix(0)
 
     else
-        !Para cada proceso diferente del proceso 0, se recibe y guarda una parte
-        ! de la matrix proporcional al num_procesos
-        allocate(a(ma_nfil*ma_ncol))
-        allocate(b(ma_ncol))
 
-        call MPI_RECV(a,ma_nfil*ma_ncol,MPI_REAL8,0,1000+proceso,MPI_COMM_WORLD,status,ierr)
-        call MPI_RECV(b,ma_ncol,MPI_REAL8,0,2000+proceso,MPI_COMM_WORLD,status,ierr)
+        call assignation_matrix()
+        ! allocate(a(ni*nj))
+        ! allocate(b(nj))
 
-        do h=1,ne
-            f=(h-1)*ma_ncol+1
-            r(h)=dot_product(a(f:f+(ma_ncol-1)),b)
-        end do
+        ! call MPI_RECV(a,ni*nj,MPI_REAL8,0,1000+proceso,MPI_COMM_WORLD,status,ierr)
+        ! call MPI_RECV(b,nj,MPI_REAL8,0,2000+proceso,MPI_COMM_WORLD,status,ierr)
 
-        ! do p=1,num_procesos-1
+        ! do h=1,ne
+        !     f=(h-1)*nj+1
+        !     r(h)=dot_product(a(f:f+(nj-1)),b)
+        ! end do
+
+        ! do p=1,np-1
         !     do h=1,ne
-        !         f=(h-1)*ma_ncol+1
-        !         r(h)=dot_product(a(f:f+(ma_ncol-1)),b)
+        !         f=(h-1)*nj+1
+        !         r(h)=dot_product(a(f:f+(nj-1)),b)
         !     end do
         ! end do
 
         !devuelve el resultado de cada proceso
-        call MPI_SEND(r,ne,MPI_REAL8,0,3000+proceso,MPI_COMM_WORLD,ierr)
+        ! call MPI_SEND(r,ne,MPI_REAL8,0,3000+proceso,MPI_COMM_WORLD,ierr)
 
-        if (resto.eq.0 .and. proceso.ne.(num_procesos-1)) then
-            deallocate(a)
-        end if    
-        deallocate(b)    
+        ! if (re.eq.0 .and. proceso.ne.(np-1)) then
+        !     deallocate(a)
+        ! end if    
+        ! deallocate(b)    
 
     end if
 
     !Si hay resto, el ultimo proceso termina con la multiplicacion
-    if(proceso.eq.(num_procesos-1) .and. resto.gt.0) then
+    ! if(proceso.eq.(np-1) .and. re.gt.0) then
 
-        allocate(b(resto))
-        allocate(r(resto))
+    !     allocate(b(re))
+    !     allocate(r(re))
 
-        call MPI_RECV(b,resto,MPI_REAL8,0,4000+proceso,MPI_COMM_WORLD,status,ierr)
+    !     call MPI_RECV(b,re,MPI_REAL8,0,4000+proceso,MPI_COMM_WORLD,status,ierr)
 
-        do h=1,resto
-            g=(proceso+1)*ne+h
-            ! f=(h-1)*resto+1
-            r(h)=dot_product(a(g:g+(resto-1)),b)
-        end do
+    !     do h=1,re
+    !         g=(proceso+1)*ne+h
+    !         ! f=(h-1)*re+1
+    !         r(h)=dot_product(a(g:g+(re-1)),b)
+    !     end do
 
-        !El ultimo proceso, envia el resultado al proceso 0
-        call MPI_SEND(r,resto,MPI_REAL8,0,5000+proceso,MPI_COMM_WORLD,ierr)
+    !     !El ultimo proceso, envia el resultado al proceso 0
+    !     call MPI_SEND(r,re,MPI_REAL8,0,5000+proceso,MPI_COMM_WORLD,ierr)
 
-        deallocate(a)
-        deallocate(b)
-        deallocate(r)
-    end if
+    !     deallocate(a)
+    !     deallocate(b)
+    !     deallocate(r)
+    ! end if
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
     !Para el proceso 0, compone los resultados parciales en la matrix resultado
     if(proceso.eq.MASTER) then
-        
-        !Se guarda el resultado del proceso 0
-        g=proceso*ne+1
-        rr(1,g:g+(ne-1))=r(1:ne)
-        ! rr(1,g:g+(ne-1))=0
-
-        !Se guarda el resultado del demas procesos diferente al proceso 0
-        do p=1,num_procesos-1
-            call MPI_RECV(r,ne,MPI_REAL8,p,3000+p,MPI_COMM_WORLD,status,ierr)
-            g=p*ne+1
-            rr(1,g:g+(ne-1))=r(1:ne)
-            ! rr(1,g:g+(ne-1))=0
-        end do
-
-        !Si hay resto, se recibe y guarda el resultado del ultimo proceso
-        if(resto.gt.0) then
-            deallocate(r)
-            allocate(r(resto))
-            p=num_procesos-1
-            call MPI_RECV(r,resto,MPI_REAL8,p,5000+p,MPI_COMM_WORLD,status,ierr)
-            g=p*ne+1
-            rr(1,g:g+(resto-1))=r(1:resto)
-            ! rr(1,g:g+(resto-1))=0
-        end if     
-
-        mr = reshape(source=rr, shape=[ma_nfil, mb_ncol])
+     
+        mr = reshape(source=rr, shape=[ni, nk])
 
         !calcula el tiempo que toma el proceso y la memoria asignada
         call cpu_time(finish)
         write(*,104) finish-start
 
-        nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*8. !c_sizeof(real(8)) = 8
+        nb=(ni*nj+nj*nk+ni*nk)*8. !c_sizeof(real(8)) = 8
         write(*,105) nb
         print *    
 
@@ -264,11 +227,238 @@ program main
 
     end if
 
-    deallocate(r)        
-
     call MPI_FINALIZE(ierr)
 
 contains
+
+    !El proceso 0 envia a cada proceso una parte de la matrix proporcional al np
+    subroutine descompose_matrix()
+
+        if(ne.gt.ni) then
+            
+            do p=1,np-1
+                ini = 1
+                fin = ni
+                call send_ra(ini,fin,p,11000+p)
+                ini = p*int(ne/ni)+1
+                fin = (p+1)*int(ne/ni)+mod(ne,ni)
+                call send_rb(ini,fin,p,12000+p)
+            end do
+
+            if(re.ne.0) then
+                ini = np*int(ne/ni)+1
+                fin = np*int(ne/ni)+re
+                call send_rb(ini,fin,np-1,13000+np-1)          
+            end if
+         
+        else if(ne.eq.ni) then
+
+            do p=1,np-1            
+                ini = 1
+                fin = ni
+                call send_ra(ini,fin,p,21000+p)
+                ini = p+1
+                fin = p+1
+                call send_rb(ini,fin,p,22000+p)                
+            end do
+
+            if(re.ne.0) then
+                ini = 1
+                fin = re
+                call send_ra(ini,fin,np-1,23000+np-1)
+                ini = np+1
+                fin = np+1
+                call send_rb(ini,fin,np-1,24000+np-1)
+            end if
+
+        else if(ne.lt.ni) then
+
+            do p=1,np-1
+                ini = p*ne+1
+                fin = (p+1)*ne
+                call send_ra(ini,fin,p,31000+p)
+                ini = int((p*ne)/ni)+1
+                fin = int(((p+1)*ne-1)/ni)+1
+                call send_rb(ini,fin,p,32000+p)
+            end do
+
+            if(re.ne.0) then
+                ini = np*ne+1
+                fin = np*ne+re
+                call send_ra(ini,fin,np-1,33000+np-1)               
+                ini = int((np*ne)/ni)+1
+                fin = int((np*ne+re-1)/ni)+1
+                call send_rb(ini,fin,np-1,34000+np-1)          
+            end if
+
+        end if
+
+    end subroutine descompose_matrix
+
+    !El proceso 0, realiza la multiplicacion correspondiente a su parte
+    subroutine dot_product_matrix(p)
+        integer :: p
+        if(ne.gt.ni) then
+            ini = 1
+            fin = ni
+            call allocate_a(ini,fin)
+
+            ini = p*int(ne/ni)+1
+            fin = (p+1)*int(ne/ni)+mod(ne,ni)
+            call allocate_b(ini,fin) 
+
+            call dot_product_ab(ne)
+            call compose_matrix(p, ne)
+
+            if(re.ne.0) then
+                ini = np*int(ne/ni)+1
+                fin = np*int(ne/ni)+re
+                call allocate_b(ini,fin)
+                ! call dot_product_ab()
+            end if
+
+        else if(ne.eq.ni) then
+            ini = 1
+            fin = ni
+            ! call send_ra(ini,fin,p,21000+p)
+            ini = p+1
+            fin = p+1
+            ! call send_rb(ini,fin,p,22000+p)  
+        else if(ne.lt.ni) then
+            ini = p*ne+1
+            fin = (p+1)*ne
+            ! call send_ra(ini,fin,p,31000+p)
+            ini = int((p*ne)/ni)+1
+            fin = int(((p+1)*ne-1)/ni)+1
+            ! call send_rb(ini,fin,p,32000+p)
+        end if
+    end subroutine dot_product_matrix
+
+    subroutine compose_matrix(p, len)
+        integer :: p, len
+        rr(1,p*len+1:(p+1)*len)=r(1:len)
+    end subroutine compose_matrix
+
+    subroutine send_ra(ini, fin, rank, tag)
+        integer :: ini, fin, rank, tag
+        ! print *, "a(ini): ", ini, ", a(fin): ", fin
+        call allocate_a(ini, fin)
+        call MPI_SEND(a,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,ierr)
+    end subroutine send_ra
+
+    subroutine allocate_a(ini, fin)
+        integer :: ini, fin
+        ini=nj*(ini-1)+1
+        fin=nj*(fin-1)+nj
+        len = fin-(ini-1)
+        ! print *, "a(ini): ", ini, ", a(fin): ", fin
+        if(allocated(a)) then
+            deallocate(a)
+        end if
+        allocate(a(len))
+        a=ra(1,ini:fin)
+    end subroutine
+
+    subroutine send_rb(ini, fin, rank, tag)
+        integer :: ini, fin, rank, tag
+        ! print *, "b(ini): ", ini, ", b(fin): ", fin
+        call allocate_b(ini, fin)
+        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,ierr)
+    end subroutine send_rb
+
+    subroutine allocate_b(ini, fin)
+        integer :: ini, fin
+        ini=nj*(ini-1)+1
+        fin=nj*(fin-1)+nj
+        len = fin-(ini-1)
+        if(allocated(b)) then
+            deallocate(b)
+        end if
+        allocate(b(len))
+        b=rb(1,ini:fin)
+    end subroutine
+
+    subroutine dot_product_ab(len)
+        integer :: len
+
+        if(allocated(r)) then
+            deallocate(r)
+        end if
+        allocate(r(len))
+
+        h=1
+
+        if(ne.gt.ni) then
+
+            do k=1,len
+                do i=1,ni
+                    r(h)=dot_product(a((i-1)*nj+1:i*nj+1),b((k-1)*nj+1:k*nj+1))
+                    h=h+1
+
+                    if(h.gt.len) then
+                        exit
+                    end if
+                end do
+
+                if(h.gt.len) then
+                    exit
+                end if
+            end do
+
+        end if
+
+    end subroutine dot_product_ab
+
+    subroutine assignation_matrix()
+        !Para cada proceso diferente del proceso 0, se recibe y guarda una parte
+        ! de la matrix proporcional al np
+        if(ne.gt.ni) then            
+            call recv_ra(ni,MASTER,11000+proceso)
+            call recv_rb(ne,MASTER,12000+proceso)
+
+            if(re.ne.0 .and. proceso.eq.(np-1)) then
+                call recv_rb(re,MASTER,13000+proceso)
+            end if
+
+        else if(ne.eq.ni) then
+            call recv_ra(ni,MASTER,21000+proceso)
+            call recv_rb(1,MASTER,22000+proceso)
+
+            if(re.ne.0 .and. proceso.eq.(np-1)) then
+                call recv_ra(re,MASTER,23000+proceso)
+                call recv_rb(1,MASTER,24000+proceso)
+            end if
+
+        else if(ne.lt.ni) then
+            call recv_ra(ne,MASTER,31000+proceso)
+            len = int(((proceso+1)*ne-1)/ni)-int((proceso*ne)/ni)+1
+            call recv_rb(len,MASTER,32000+proceso)
+
+            if(re.ne.0 .and. proceso.eq.(np-1)) then
+                call recv_ra(re,MASTER,33000+proceso)
+                len = int((np*ne+re-1)/ni)-int((np*ne)/ni)+1      
+                call recv_rb(len,MASTER,34000+proceso)
+            end if
+
+        end if
+    end subroutine assignation_matrix
+
+
+    subroutine recv_ra(lena, rank, tag)
+        integer :: lena, rank, tag
+        len=lena*nj
+        allocate(a(len))
+        call MPI_RECV(a,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
+        deallocate(a)
+    end subroutine recv_ra
+
+    subroutine recv_rb(lenb, rank, tag)
+        integer :: lenb, rank, tag
+        len=lenb*nj
+        allocate(b(len))
+        call MPI_RECV(b,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
+        deallocate(b)
+    end subroutine recv_rb
 
     subroutine config_args()
         integer :: e, ei, ej, ek, x
@@ -277,9 +467,9 @@ contains
 
         100 format("Ingrese orden de las matrices i,j,k")
 
-        i=1
-        j=1
-        k=1
+        ni=1
+        nj=1
+        nk=1
         start = 0
         finish = 0
         nb = 0
@@ -293,19 +483,19 @@ contains
             read(arg, *, IOSTAT=e) args
 
             if (e.eq.0) then 
-                read(args(1), *, IOSTAT=ei)i
+                read(args(1), *, IOSTAT=ei)ni
                 if(ei.ne.0) then
                     write (*, 100)
                     stop 1
                 end if
 
-                read(args(2), *, IOSTAT=ej)j            
+                read(args(2), *, IOSTAT=ej)nj            
                 if(ej.ne.0) then
                     write (*, 100)
                     stop 2
                 end if
 
-                read(args(3), *, IOSTAT=ek)k            
+                read(args(3), *, IOSTAT=ek)nk            
                 if(ek.ne.0) then
                     write (*, 100)
                     stop 3
@@ -328,13 +518,6 @@ contains
                 end if           
             end if
         end if
-
-        !print *, i, j, k
-
-        ma_nfil=i
-        ma_ncol=j
-        mb_nfil=j
-        mb_ncol=k
     end subroutine config_args
 
 end program main
