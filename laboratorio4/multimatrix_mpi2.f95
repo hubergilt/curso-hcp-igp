@@ -149,60 +149,20 @@ program main
 
         call descompose_matrix()
 
-        call dot_product_matrix(0)
+        call dot_product_matrix(proceso, ne)
 
+        call descompose_resto_matrix()
+        
     else
 
         call assignation_matrix()
-        ! allocate(a(ni*nj))
-        ! allocate(b(nj))
-
-        ! call MPI_RECV(a,ni*nj,MPI_REAL8,0,1000+proceso,MPI_COMM_WORLD,status,ierr)
-        ! call MPI_RECV(b,nj,MPI_REAL8,0,2000+proceso,MPI_COMM_WORLD,status,ierr)
-
-        ! do h=1,ne
-        !     f=(h-1)*nj+1
-        !     r(h)=dot_product(a(f:f+(nj-1)),b)
-        ! end do
-
-        ! do p=1,np-1
-        !     do h=1,ne
-        !         f=(h-1)*nj+1
-        !         r(h)=dot_product(a(f:f+(nj-1)),b)
-        !     end do
-        ! end do
-
-        !devuelve el resultado de cada proceso
-        ! call MPI_SEND(r,ne,MPI_REAL8,0,3000+proceso,MPI_COMM_WORLD,ierr)
-
-        ! if (re.eq.0 .and. proceso.ne.(np-1)) then
-        !     deallocate(a)
-        ! end if    
-        ! deallocate(b)    
-
+   
     end if
 
     !Si hay resto, el ultimo proceso termina con la multiplicacion
-    ! if(proceso.eq.(np-1) .and. re.gt.0) then
-
-    !     allocate(b(re))
-    !     allocate(r(re))
-
-    !     call MPI_RECV(b,re,MPI_REAL8,0,4000+proceso,MPI_COMM_WORLD,status,ierr)
-
-    !     do h=1,re
-    !         g=(proceso+1)*ne+h
-    !         ! f=(h-1)*re+1
-    !         r(h)=dot_product(a(g:g+(re-1)),b)
-    !     end do
-
-    !     !El ultimo proceso, envia el resultado al proceso 0
-    !     call MPI_SEND(r,re,MPI_REAL8,0,5000+proceso,MPI_COMM_WORLD,ierr)
-
-    !     deallocate(a)
-    !     deallocate(b)
-    !     deallocate(r)
-    ! end if
+    if(proceso.eq.(np-1) .and. re.gt.0) then
+        ! call assignation_matrix()
+    end if
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
@@ -234,104 +194,96 @@ contains
     !El proceso 0 envia a cada proceso una parte de la matrix proporcional al np
     subroutine descompose_matrix()
 
-        if(ne.gt.ni) then
-            
-            do p=1,np-1
-                ini = 1
-                fin = ni
-                call send_ra(ini,fin,p,11000+p)
-                ini = p*int(ne/ni)+1
-                fin = (p+1)*int(ne/ni)+mod(ne,ni)
-                call send_rb(ini,fin,p,12000+p)
-            end do
+        do p=1,np-1           
+            call compose_a(p)
+            call send_a(p)   
 
-            if(re.ne.0) then
-                ini = np*int(ne/ni)+1
-                fin = np*int(ne/ni)+re
-                call send_rb(ini,fin,np-1,13000+np-1)          
-            end if
-         
-        else if(ne.eq.ni) then
-
-            do p=1,np-1            
-                ini = 1
-                fin = ni
-                call send_ra(ini,fin,p,21000+p)
-                ini = p+1
-                fin = p+1
-                call send_rb(ini,fin,p,22000+p)                
-            end do
-
-            if(re.ne.0) then
-                ini = 1
-                fin = re
-                call send_ra(ini,fin,np-1,23000+np-1)
-                ini = np+1
-                fin = np+1
-                call send_rb(ini,fin,np-1,24000+np-1)
-            end if
-
-        else if(ne.lt.ni) then
-
-            do p=1,np-1
-                ini = p*ne+1
-                fin = (p+1)*ne
-                call send_ra(ini,fin,p,31000+p)
-                ini = int((p*ne)/ni)+1
-                fin = int(((p+1)*ne-1)/ni)+1
-                call send_rb(ini,fin,p,32000+p)
-            end do
-
-            if(re.ne.0) then
-                ini = np*ne+1
-                fin = np*ne+re
-                call send_ra(ini,fin,np-1,33000+np-1)               
-                ini = int((np*ne)/ni)+1
-                fin = int((np*ne+re-1)/ni)+1
-                call send_rb(ini,fin,np-1,34000+np-1)          
-            end if
-
-        end if
+            call compose_b(p)
+            call send_b(p)
+        end do 
 
     end subroutine descompose_matrix
 
-    !El proceso 0, realiza la multiplicacion correspondiente a su parte
-    subroutine dot_product_matrix(p)
+    subroutine descompose_resto_matrix()
+
+        if(re.ne.0) then
+            call compose_resto_a()
+            call send_a(np-1)
+
+            call compose_resto_b()
+            call send_b(np-1)
+        end if
+
+    end subroutine descompose_resto_matrix
+
+    subroutine compose_a(p)
         integer :: p
         if(ne.gt.ni) then
             ini = 1
             fin = ni
-            call allocate_a(ini,fin)
-
-            ini = p*int(ne/ni)+1
-            fin = (p+1)*int(ne/ni)+mod(ne,ni)
-            call allocate_b(ini,fin) 
-
-            call dot_product_ab(ne)
-            call compose_matrix(p, ne)
-
-            if(re.ne.0) then
-                ini = np*int(ne/ni)+1
-                fin = np*int(ne/ni)+re
-                call allocate_b(ini,fin)
-                ! call dot_product_ab()
-            end if
-
         else if(ne.eq.ni) then
             ini = 1
             fin = ni
-            ! call send_ra(ini,fin,p,21000+p)
-            ini = p+1
-            fin = p+1
-            ! call send_rb(ini,fin,p,22000+p)  
         else if(ne.lt.ni) then
             ini = p*ne+1
             fin = (p+1)*ne
-            ! call send_ra(ini,fin,p,31000+p)
+        end if
+        call allocate_a(ini, fin)
+    end subroutine compose_a
+
+     subroutine compose_resto_a()
+        if(ne.gt.ni) then
+            ini = 1
+            fin = ni
+        else if(ne.eq.ni) then
+            ini = 1
+            fin = re
+        else if(ne.lt.ni) then
+            ini = np*ne+1
+            fin = np*ne+re
+        end if
+        call allocate_a(ini, fin)
+    end subroutine compose_resto_a
+
+    subroutine compose_b(p)
+        integer :: p
+        if(ne.gt.ni) then
+            ini = p*int(ne/ni)+1
+            fin = (p+1)*int(ne/ni)+mod(ne,ni)
+        else if(ne.eq.ni) then
+            ini = p+1
+            fin = p+1
+        else if(ne.lt.ni) then
             ini = int((p*ne)/ni)+1
             fin = int(((p+1)*ne-1)/ni)+1
-            ! call send_rb(ini,fin,p,32000+p)
         end if
+        call allocate_b(ini, fin)
+    end subroutine compose_b
+
+     subroutine compose_resto_b()
+        integer :: p 
+            if(ne.gt.ni) then
+                ini = np*int(ne/ni)+1
+                fin = np*int(ne/ni)+re
+            else if(ne.eq.ni) then
+                ini = np+1
+                fin = np+1
+            else if(ne.lt.ni) then
+                ini = int((np*ne)/ni)+1
+                fin = int((np*ne+re-1)/ni)+1
+            end if
+            call allocate_b(ini, fin)
+    end subroutine compose_resto_b
+
+    !El proceso 0, realiza la multiplicacion correspondiente a su parte
+    subroutine dot_product_matrix(p, len)
+        integer :: p, len
+
+        compose_a(p)
+        compose_b(p)
+        call dot_product_ab(len)
+        call compose_matrix(p, len)
+
     end subroutine dot_product_matrix
 
     subroutine compose_matrix(p, len)
@@ -339,12 +291,30 @@ contains
         rr(1,p*len+1:(p+1)*len)=r(1:len)
     end subroutine compose_matrix
 
-    subroutine send_ra(ini, fin, rank, tag)
-        integer :: ini, fin, rank, tag
+    subroutine send_a(p)
+        integer :: p, tag
+
+        if(re.eq.0) then
+            if(ne.gt.ni) then
+                tag = 11000
+            else if(ne.eq.ni) then
+                tag = 21000
+            else if(ne.lt.ni) then
+                tag = 31000
+            end if
+        else
+            if(ne.gt.ni) then
+                !no se vuelve enviar
+            else if(ne.eq.ni) then
+                tag = 23000
+            else if(ne.lt.ni) then
+                tag = 33000
+            end if
+        end if
+
         ! print *, "a(ini): ", ini, ", a(fin): ", fin
-        call allocate_a(ini, fin)
-        call MPI_SEND(a,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,ierr)
-    end subroutine send_ra
+        call MPI_SEND(a,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+    end subroutine send_a
 
     subroutine allocate_a(ini, fin)
         integer :: ini, fin
@@ -359,12 +329,29 @@ contains
         a=ra(1,ini:fin)
     end subroutine
 
-    subroutine send_rb(ini, fin, rank, tag)
-        integer :: ini, fin, rank, tag
-        ! print *, "b(ini): ", ini, ", b(fin): ", fin
-        call allocate_b(ini, fin)
-        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,ierr)
-    end subroutine send_rb
+    subroutine send_b(p)
+        integer :: p, tag
+
+        if(re.eq.0) then
+            if(ne.gt.ni) then
+                tag = 12000
+            else if(ne.eq.ni) then
+                tag = 22000
+            else if(ne.lt.ni) then
+                tag = 32000
+            end if
+        else
+            if(ne.gt.ni) then
+                tag = 13000
+            else if(ne.eq.ni) then
+                tag = 24000
+            else if(ne.lt.ni) then
+                tag = 34000
+            end if
+        end if
+
+        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,p,tag,MPI_COMM_WORLD,ierr)
+    end subroutine send_b
 
     subroutine allocate_b(ini, fin)
         integer :: ini, fin
