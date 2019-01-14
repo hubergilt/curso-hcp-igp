@@ -286,8 +286,8 @@ contains
     subroutine compose_ab(p)
         integer :: p
 
-        compose_a(p)
-        compose_b(p)
+        call compose_a(p)
+        call compose_b(p)
 
     end subroutine compose_ab
 
@@ -317,7 +317,7 @@ contains
             end if
         else
             if(ne.gt.ni) then
-                !no se vuelve enviar
+                tag = 13000
             else if(ne.eq.ni) then
                 tag = 23000
             else if(ne.lt.ni) then
@@ -355,7 +355,7 @@ contains
             end if
         else
             if(ne.gt.ni) then
-                tag = 13000
+                tag = 14000
             else if(ne.eq.ni) then
                 tag = 24000
             else if(ne.lt.ni) then
@@ -428,8 +428,8 @@ contains
     subroutine assignation_residue_ab()
         if(re.ne.0) then
             if(ne.gt.ni) then
-                call recv_ra(ni,MASTER,11000+proceso)
-                call recv_rb(re,MASTER,13000+proceso)      
+                call recv_ra(ni,MASTER,13000+proceso)
+                call recv_rb(re,MASTER,14000+proceso)      
             else if(ne.eq.ni) then
                 call recv_ra(re,MASTER,23000+proceso)
                 call recv_rb(1,MASTER,24000+proceso)
