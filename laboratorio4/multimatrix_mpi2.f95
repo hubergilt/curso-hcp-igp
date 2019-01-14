@@ -149,19 +149,27 @@ program main
 
         call descompose_matrix()
 
+        !El proceso 0, realiza la multiplicacion correspondiente a su parte
+        call compose_ab(p)
         call dot_product_matrix(proceso, ne)
-
-        call descompose_resto_matrix()
         
     else
 
-        call assignation_matrix()
-   
+        call assignation_ab()
+        call dot_product_matrix(proceso, ne)
+
     end if
 
+    call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
     !Si hay resto, el ultimo proceso termina con la multiplicacion
-    if(proceso.eq.(np-1) .and. re.gt.0) then
-        ! call assignation_matrix()
+    if(re.gt.0) then
+        if(proceso.eq.(MASTER)) then 
+            call descompose_residue_matrix()
+        else if(proceso.eq.(np-1)) then
+            call assignation_residue_ab()
+            call dot_product_matrix(proceso, re)        
+        end if
     end if
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -204,17 +212,17 @@ contains
 
     end subroutine descompose_matrix
 
-    subroutine descompose_resto_matrix()
+    subroutine descompose_residue_matrix()
 
         if(re.ne.0) then
-            call compose_resto_a()
+            call compose_residue_a()
             call send_a(np-1)
 
-            call compose_resto_b()
+            call compose_residue_b()
             call send_b(np-1)
         end if
 
-    end subroutine descompose_resto_matrix
+    end subroutine descompose_residue_matrix
 
     subroutine compose_a(p)
         integer :: p
@@ -231,7 +239,7 @@ contains
         call allocate_a(ini, fin)
     end subroutine compose_a
 
-     subroutine compose_resto_a()
+     subroutine compose_residue_a()
         if(ne.gt.ni) then
             ini = 1
             fin = ni
@@ -243,7 +251,7 @@ contains
             fin = np*ne+re
         end if
         call allocate_a(ini, fin)
-    end subroutine compose_resto_a
+    end subroutine compose_residue_a
 
     subroutine compose_b(p)
         integer :: p
@@ -260,7 +268,7 @@ contains
         call allocate_b(ini, fin)
     end subroutine compose_b
 
-     subroutine compose_resto_b()
+     subroutine compose_residue_b()
         integer :: p 
             if(ne.gt.ni) then
                 ini = np*int(ne/ni)+1
@@ -273,23 +281,28 @@ contains
                 fin = int((np*ne+re-1)/ni)+1
             end if
             call allocate_b(ini, fin)
-    end subroutine compose_resto_b
+    end subroutine compose_residue_b
 
-    !El proceso 0, realiza la multiplicacion correspondiente a su parte
-    subroutine dot_product_matrix(p, len)
-        integer :: p, len
+    subroutine compose_ab(p)
+        integer :: p
 
         compose_a(p)
         compose_b(p)
+
+    end subroutine compose_ab
+
+    subroutine dot_product_matrix(p, len)
+        integer :: p, len
+
         call dot_product_ab(len)
-        call compose_matrix(p, len)
+        call recompose_matrix(p, len)
 
     end subroutine dot_product_matrix
 
-    subroutine compose_matrix(p, len)
+    subroutine recompose_matrix(p, len)
         integer :: p, len
         rr(1,p*len+1:(p+1)*len)=r(1:len)
-    end subroutine compose_matrix
+    end subroutine recompose_matrix
 
     subroutine send_a(p)
         integer :: p, tag
@@ -396,40 +409,37 @@ contains
 
     end subroutine dot_product_ab
 
-    subroutine assignation_matrix()
-        !Para cada proceso diferente del proceso 0, se recibe y guarda una parte
-        ! de la matrix proporcional al np
+    !Para cada proceso diferente del proceso 0, se recibe y guarda una parte
+    ! de la matrix proporcional al np
+    subroutine assignation_ab()
         if(ne.gt.ni) then            
             call recv_ra(ni,MASTER,11000+proceso)
             call recv_rb(ne,MASTER,12000+proceso)
-
-            if(re.ne.0 .and. proceso.eq.(np-1)) then
-                call recv_rb(re,MASTER,13000+proceso)
-            end if
-
         else if(ne.eq.ni) then
             call recv_ra(ni,MASTER,21000+proceso)
             call recv_rb(1,MASTER,22000+proceso)
-
-            if(re.ne.0 .and. proceso.eq.(np-1)) then
-                call recv_ra(re,MASTER,23000+proceso)
-                call recv_rb(1,MASTER,24000+proceso)
-            end if
-
         else if(ne.lt.ni) then
             call recv_ra(ne,MASTER,31000+proceso)
             len = int(((proceso+1)*ne-1)/ni)-int((proceso*ne)/ni)+1
             call recv_rb(len,MASTER,32000+proceso)
+        end if
+    end subroutine assignation_ab
 
-            if(re.ne.0 .and. proceso.eq.(np-1)) then
+    subroutine assignation_residue_ab()
+        if(re.ne.0) then
+            if(ne.gt.ni) then
+                call recv_ra(ni,MASTER,11000+proceso)
+                call recv_rb(re,MASTER,13000+proceso)      
+            else if(ne.eq.ni) then
+                call recv_ra(re,MASTER,23000+proceso)
+                call recv_rb(1,MASTER,24000+proceso)
+            else if(ne.lt.ni) then
                 call recv_ra(re,MASTER,33000+proceso)
                 len = int((np*ne+re-1)/ni)-int((np*ne)/ni)+1      
                 call recv_rb(len,MASTER,34000+proceso)
             end if
-
         end if
-    end subroutine assignation_matrix
-
+    end subroutine assignation_residue_ab
 
     subroutine recv_ra(lena, rank, tag)
         integer :: lena, rank, tag
