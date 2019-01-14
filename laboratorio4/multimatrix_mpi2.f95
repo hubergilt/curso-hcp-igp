@@ -105,7 +105,9 @@ program main
     105 format("Tamano de  memoria asignada >> ",F12.0," bytes")
     106 format("Resevacion mem terminada en >> ",F10.3," segundos") 
     107 format("Asig aleatoria terminada en >> ",F10.3," segundos") 
-    108 format("Transformacion terminada en >> ",F10.3," segundos") 
+    108 format("Conv a arreglo terminada en >> ",F10.3," segundos") 
+    109 format("Descomposicion terminada en >> ",F10.3," segundos") 
+    110 format("Mult proceso 0 terminada en >> ",F10.3," segundos")     
 
     call config_args()
     flg = 0
@@ -146,18 +148,35 @@ program main
         write(*,108) finish-start
 
         call cpu_time(start)
-
         call descompose_matrix()
+        call cpu_time(finish)
+        write(*,109) finish-start
 
+        call cpu_time(start)
         !El proceso 0, realiza la multiplicacion correspondiente a su parte
-        call compose_ab(p)
-        call dot_product_matrix(proceso, ne)
-        
+        call compose_ab(proceso)
+        call dot_product_ab(ne)
+        ! call dot_product_matrix(proceso, ne)
+        call cpu_time(finish)
+        write(*,110) finish-start
+
+        call cpu_time(start)        
+        call recompose_matrix(proceso,ne)
+
     else
 
-        call assignation_ab()
-        call dot_product_matrix(proceso, ne)
+        call assignation_ab(proceso)
+        call dot_product_ab(ne)
+        call send_result(MASTER,ne)
 
+    end if
+
+    !El proceso 0, recompone los resultados parciales
+    if(proceso.eq.MASTER) then
+        do p=1, np-1
+            call recv_result(p, ne)
+            call recompose_matrix(p,ne)
+        end do
     end if
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
@@ -165,16 +184,28 @@ program main
     !Si hay resto, el ultimo proceso termina con la multiplicacion
     if(re.gt.0) then
         if(proceso.eq.(MASTER)) then 
-            call descompose_residue_matrix()
+            call descompose_residue_matrix()                      
         else if(proceso.eq.(np-1)) then
-            call assignation_residue_ab()
-            call dot_product_matrix(proceso, re)        
+            call assignation_residue_ab(proceso)
+            call dot_product_ab(re)            
+            call send_result(MASTER,re)
+        end if
+
+        call MPI_BARRIER(MPI_COMM_WORLD,ierr)         
+
+        if(proceso.eq.MASTER) then
+            print *, "entro aqui!, re es", re
+            do p=1, re
+                call recv_result(p, re)
+                print *, "resto si, r", r
+                call recompose_residue_matrix(np, ne, re)
+            end do
         end if
     end if
 
-    call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+    ! call MPI_BARRIER(MPI_COMM_WORLD,ierr)    
 
-    !Para el proceso 0, compone los resultados parciales en la matrix resultado
+    !Para el proceso 0, devuelve la dimension original de la matrix
     if(proceso.eq.MASTER) then
      
         mr = reshape(source=rr, shape=[ni, nk])
@@ -204,7 +235,7 @@ contains
 
         do p=1,np-1           
             call compose_a(p)
-            call send_a(p)   
+            call send_a(p)
 
             call compose_b(p)
             call send_b(p)
@@ -216,10 +247,10 @@ contains
 
         if(re.ne.0) then
             call compose_residue_a()
-            call send_a(np-1)
+            call send_residue_a(np-1)
 
             call compose_residue_b()
-            call send_b(np-1)
+            call send_residue_b(np-1)
         end if
 
     end subroutine descompose_residue_matrix
@@ -270,17 +301,17 @@ contains
 
      subroutine compose_residue_b()
         integer :: p 
-            if(ne.gt.ni) then
-                ini = np*int(ne/ni)+1
-                fin = np*int(ne/ni)+re
-            else if(ne.eq.ni) then
-                ini = np+1
-                fin = np+1
-            else if(ne.lt.ni) then
-                ini = int((np*ne)/ni)+1
-                fin = int((np*ne+re-1)/ni)+1
-            end if
-            call allocate_b(ini, fin)
+        if(ne.gt.ni) then
+            ini = np*int(ne/ni)+1
+            fin = np*int(ne/ni)+re
+        else if(ne.eq.ni) then
+            ini = np+1
+            fin = np+1
+        else if(ne.lt.ni) then
+            ini = int((np*ne)/ni)+1
+            fin = int((np*ne+re-1)/ni)+1
+        end if
+        call allocate_b(ini, fin)
     end subroutine compose_residue_b
 
     subroutine compose_ab(p)
@@ -291,43 +322,93 @@ contains
 
     end subroutine compose_ab
 
-    subroutine dot_product_matrix(p, len)
-        integer :: p, len
-
-        call dot_product_ab(len)
-        call recompose_matrix(p, len)
-
-    end subroutine dot_product_matrix
-
     subroutine recompose_matrix(p, len)
         integer :: p, len
         rr(1,p*len+1:(p+1)*len)=r(1:len)
     end subroutine recompose_matrix
 
+    subroutine recompose_residue_matrix(p, len, re)
+        integer :: p, len, re
+        rr(1,p*len+1:p*len+re)=r(1:re)
+    end subroutine recompose_residue_matrix
+
+    subroutine send_result(p, len)
+        integer :: p, len, tag
+
+        tag = 15000
+        call MPI_SEND(r,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+    end subroutine
+
+    subroutine recv_result(p, len)
+        integer :: p, len, tag
+
+        if(allocated(r)) then
+            deallocate(r)
+        end if
+        allocate(r(len))
+
+        tag = 15000
+        call MPI_RECV(r,len,MPI_REAL8,p,tag,MPI_COMM_WORLD,status,ierr)        
+    end subroutine
+
     subroutine send_a(p)
         integer :: p, tag
 
-        if(re.eq.0) then
-            if(ne.gt.ni) then
-                tag = 11000
-            else if(ne.eq.ni) then
-                tag = 21000
-            else if(ne.lt.ni) then
-                tag = 31000
-            end if
-        else
-            if(ne.gt.ni) then
-                tag = 13000
-            else if(ne.eq.ni) then
-                tag = 23000
-            else if(ne.lt.ni) then
-                tag = 33000
-            end if
+        if(ne.gt.ni) then
+            tag = 11000
+        else if(ne.eq.ni) then
+            tag = 21000
+        else if(ne.lt.ni) then
+            tag = 31000
         end if
 
         ! print *, "a(ini): ", ini, ", a(fin): ", fin
         call MPI_SEND(a,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
     end subroutine send_a
+
+    subroutine send_residue_a(p)
+        integer :: p, tag
+
+        if(ne.gt.ni) then
+            tag = 13000
+        else if(ne.eq.ni) then
+            tag = 23000
+        else if(ne.lt.ni) then
+            tag = 33000
+        end if
+
+        ! print *, "a(ini): ", ini, ", a(fin): ", fin
+        call MPI_SEND(a,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+    end subroutine send_residue_a
+
+    subroutine send_b(p)
+        integer :: p, tag
+
+        if(ne.gt.ni) then
+            tag = 12000
+        else if(ne.eq.ni) then
+            tag = 22000
+        else if(ne.lt.ni) then
+            tag = 32000
+        end if
+
+        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+    end subroutine send_b
+
+    subroutine send_residue_b(p)
+        integer :: p, tag
+
+        if(ne.gt.ni) then
+            tag = 14000
+        else if(ne.eq.ni) then
+            tag = 24000
+        else if(ne.lt.ni) then
+            tag = 34000
+        end if
+
+        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+    end subroutine send_residue_b
+
 
     subroutine allocate_a(ini, fin)
         integer :: ini, fin
@@ -341,30 +422,6 @@ contains
         allocate(a(len))
         a=ra(1,ini:fin)
     end subroutine
-
-    subroutine send_b(p)
-        integer :: p, tag
-
-        if(re.eq.0) then
-            if(ne.gt.ni) then
-                tag = 12000
-            else if(ne.eq.ni) then
-                tag = 22000
-            else if(ne.lt.ni) then
-                tag = 32000
-            end if
-        else
-            if(ne.gt.ni) then
-                tag = 14000
-            else if(ne.eq.ni) then
-                tag = 24000
-            else if(ne.lt.ni) then
-                tag = 34000
-            end if
-        end if
-
-        call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,p,tag,MPI_COMM_WORLD,ierr)
-    end subroutine send_b
 
     subroutine allocate_b(ini, fin)
         integer :: ini, fin
@@ -409,34 +466,36 @@ contains
 
     end subroutine dot_product_ab
 
-    !Para cada proceso diferente del proceso 0, se recibe y guarda una parte
-    ! de la matrix proporcional al np
-    subroutine assignation_ab()
+    !Para cada proceso, se recibe y guarda una parte de la matrix proporcional al np
+    subroutine assignation_ab(p)        
+        integer :: p
+
         if(ne.gt.ni) then            
-            call recv_ra(ni,MASTER,11000+proceso)
-            call recv_rb(ne,MASTER,12000+proceso)
+            call recv_ra(ni,MASTER,11000+p)
+            call recv_rb(ne,MASTER,12000+p)
         else if(ne.eq.ni) then
-            call recv_ra(ni,MASTER,21000+proceso)
-            call recv_rb(1,MASTER,22000+proceso)
+            call recv_ra(ni,MASTER,21000+p)
+            call recv_rb(1,MASTER,22000+p)
         else if(ne.lt.ni) then
-            call recv_ra(ne,MASTER,31000+proceso)
-            len = int(((proceso+1)*ne-1)/ni)-int((proceso*ne)/ni)+1
-            call recv_rb(len,MASTER,32000+proceso)
+            call recv_ra(ne,MASTER,31000+p)
+            len = int(((p+1)*ne-1)/ni)-int((p*ne)/ni)+1
+            call recv_rb(len,MASTER,32000+p)
         end if
     end subroutine assignation_ab
 
-    subroutine assignation_residue_ab()
+    subroutine assignation_residue_ab(p)
+        integer ::   p        
         if(re.ne.0) then
             if(ne.gt.ni) then
-                call recv_ra(ni,MASTER,13000+proceso)
-                call recv_rb(re,MASTER,14000+proceso)      
+                call recv_ra(ni,MASTER,13000+p)                
+                call recv_rb(re,MASTER,14000+p)
             else if(ne.eq.ni) then
-                call recv_ra(re,MASTER,23000+proceso)
-                call recv_rb(1,MASTER,24000+proceso)
+                call recv_ra(re,MASTER,23000+p)
+                call recv_rb(1,MASTER,24000+p)
             else if(ne.lt.ni) then
-                call recv_ra(re,MASTER,33000+proceso)
+                call recv_ra(re,MASTER,33000+p)
                 len = int((np*ne+re-1)/ni)-int((np*ne)/ni)+1      
-                call recv_rb(len,MASTER,34000+proceso)
+                call recv_rb(len,MASTER,34000+p)
             end if
         end if
     end subroutine assignation_residue_ab
@@ -444,17 +503,21 @@ contains
     subroutine recv_ra(lena, rank, tag)
         integer :: lena, rank, tag
         len=lena*nj
+        if(allocated(a)) then
+            deallocate(a)
+        end if
         allocate(a(len))
         call MPI_RECV(a,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
-        deallocate(a)
     end subroutine recv_ra
 
     subroutine recv_rb(lenb, rank, tag)
         integer :: lenb, rank, tag
         len=lenb*nj
+        if(allocated(b)) then
+            deallocate(b)
+        end if
         allocate(b(len))
         call MPI_RECV(b,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
-        deallocate(b)
     end subroutine recv_rb
 
     subroutine config_args()
