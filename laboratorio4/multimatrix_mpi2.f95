@@ -60,7 +60,8 @@ end subroutine
 subroutine rand_ma()
     do j=1, nj
         do i=1, ni        
-            ma(i, j)=rand(0)*10+1   
+            ! ma(i, j)=rand(0)*10+1
+            ma(i, j)=1
         end do
     end do
 end subroutine rand_ma
@@ -68,7 +69,8 @@ end subroutine rand_ma
 subroutine rand_mb()
     do j=1, nk
         do i=1, nj
-            mb(i, j)=rand(0)*10+1                       
+            ! mb(i, j)=rand(0)*10+1                     
+            mb(i, j)=1
         end do
     end do
 end subroutine rand_mb
@@ -108,6 +110,7 @@ program main
     108 format("Conv a arreglo terminada en >> ",F10.3," segundos") 
     109 format("Descomposicion terminada en >> ",F10.3," segundos") 
     110 format("Mult proceso 0 terminada en >> ",F10.3," segundos")     
+    111 format("Comp proceso 0 terminada en >> ",F10.3," segundos")     
 
     call config_args()
     flg = 0
@@ -156,18 +159,35 @@ program main
         !El proceso 0, realiza la multiplicacion correspondiente a su parte
         call compose_ab(proceso)
         call dot_product_ab(ne)
-        ! call dot_product_matrix(proceso, ne)
+
+        ! print *, "proceso", proceso, "a", a
+        ! print *, "proceso", proceso, "b", b
+        ! print *, "proceso", proceso, "r", r
+        
         call cpu_time(finish)
         write(*,110) finish-start
 
-        call cpu_time(start)        
+        call cpu_time(start) 
         call recompose_matrix(proceso,ne)
+        call cpu_time(finish)
+        write(*,111) finish-start
+
+        call cpu_time(start)
 
     else
 
+        ! print *, "proceso", proceso
         call assignation_ab(proceso)
+        ! print *, "a", a
+        ! print *, "b", b
+        
         call dot_product_ab(ne)
+
+
         call send_result(MASTER,ne)
+        ! print *, "proceso", proceso, "a", a
+        ! print *, "proceso", proceso, "b", b
+        ! print *, "proceso", proceso, "r", r
 
     end if
 
@@ -181,7 +201,7 @@ program main
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-    !Si hay resto, el ultimo proceso termina con la multiplicacion
+    ! Si hay resto, el ultimo proceso termina con la multiplicacion
     if(re.gt.0) then
         if(proceso.eq.(MASTER)) then 
             call descompose_residue_matrix()                      
@@ -194,16 +214,14 @@ program main
         call MPI_BARRIER(MPI_COMM_WORLD,ierr)         
 
         if(proceso.eq.MASTER) then
-            print *, "entro aqui!, re es", re
-            do p=1, re
-                call recv_result(p, re)
-                print *, "resto si, r", r
-                call recompose_residue_matrix(np, ne, re)
-            end do
+
+            call recv_result(np-1, re)                
+            call recompose_residue_matrix(np, ne, re)
+
         end if
     end if
 
-    ! call MPI_BARRIER(MPI_COMM_WORLD,ierr)    
+    call MPI_BARRIER(MPI_COMM_WORLD,ierr)    
 
     !Para el proceso 0, devuelve la dimension original de la matrix
     if(proceso.eq.MASTER) then
@@ -235,9 +253,11 @@ contains
 
         do p=1,np-1           
             call compose_a(p)
+            ! print *, "proceso", proceso,"p",p, "a", a
             call send_a(p)
 
             call compose_b(p)
+            ! print *, "p : ", p, "b : ", b            
             call send_b(p)
         end do 
 
@@ -267,7 +287,10 @@ contains
             ini = p*ne+1
             fin = (p+1)*ne
         end if
+        ! print *, "a(ini): ", ini, ", a(fin): ", fin        
         call allocate_a(ini, fin)
+        ! print *, "ini a", a
+        ! print *, "proceso", proceso,"p",p, "a", a
     end subroutine compose_a
 
      subroutine compose_residue_a()
@@ -296,6 +319,7 @@ contains
             ini = int((p*ne)/ni)+1
             fin = int(((p+1)*ne-1)/ni)+1
         end if
+        ! print *, "b(ini): ", ini, ", b(fin): ", fin        
         call allocate_b(ini, fin)
     end subroutine compose_b
 
@@ -351,21 +375,6 @@ contains
         call MPI_RECV(r,len,MPI_REAL8,p,tag,MPI_COMM_WORLD,status,ierr)        
     end subroutine
 
-    subroutine send_a(p)
-        integer :: p, tag
-
-        if(ne.gt.ni) then
-            tag = 11000
-        else if(ne.eq.ni) then
-            tag = 21000
-        else if(ne.lt.ni) then
-            tag = 31000
-        end if
-
-        ! print *, "a(ini): ", ini, ", a(fin): ", fin
-        call MPI_SEND(a,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
-    end subroutine send_a
-
     subroutine send_residue_a(p)
         integer :: p, tag
 
@@ -409,22 +418,81 @@ contains
         call MPI_SEND(rb(1,ini:fin),len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
     end subroutine send_residue_b
 
-
     subroutine allocate_a(ini, fin)
         integer :: ini, fin
-        ini=nj*(ini-1)+1
-        fin=nj*(fin-1)+nj
-        len = fin-(ini-1)
-        ! print *, "a(ini): ", ini, ", a(fin): ", fin
+        integer :: ini1, fin1, len1
+        integer :: ini2, fin2, len2   
+
+        ini2 = ini
+        fin2 = fin
+
+        ini1 = circular(ini2)
+        fin1 = circular(fin2)
+
         if(allocated(a)) then
             deallocate(a)
         end if
-        allocate(a(len))
-        a=ra(1,ini:fin)
-    end subroutine
+
+        if(ini1.gt.fin1) then
+
+            ini = ini1
+            fin = ini1+(ne-fin1)-1
+
+            call expand_nj(ini, fin, len)
+
+            ini1 = ini
+            fin1 = fin
+            len1 = len
+
+            ini1 = circular(ini2)
+            fin1 = circular(fin2)
+
+            ini = 1
+            fin = fin1
+
+            call expand_nj(ini, fin, len)
+
+            ini2 = ini
+            fin2 = fin
+            len2 = len            
+
+            allocate(a(len1+len2))
+
+            a(1:len1)=ra(1,ini1:fin1)
+            a(len1+1:len1+len2)=ra(1,ini2:fin2)
+            len=len1+len2
+
+        else
+
+            call expand_nj(ini1, fin1, len1)
+            allocate(a(len1))
+            a=ra(1,ini1:fin1)
+            len=len1
+
+        end if 
+       
+    end subroutine allocate_a
+
+    integer function circular(index)
+        integer :: index
+        if(mod(index,ni).eq.0) then
+            circular=ni
+        else
+            circular=mod(index,ni)
+        end if
+    end function circular
+
+    subroutine expand_nj(ini, fin, len)
+        integer ini, fin, len
+        ini=nj*(ini-1)+1        
+        fin=nj*(fin-1)+nj        
+        len = fin-(ini-1) 
+        ! print *,"valores", ini, fin, len      
+    end subroutine expand_nj
 
     subroutine allocate_b(ini, fin)
         integer :: ini, fin
+        ! print *, "b(ini): ", ini, ", b(fin): ", fin        
         ini=nj*(ini-1)+1
         fin=nj*(fin-1)+nj
         len = fin-(ini-1)
@@ -443,26 +511,39 @@ contains
         end if
         allocate(r(len))
 
+        ! print *,"a", a
+        ! print *,"b", b
+
         h=1
 
-        if(ne.gt.ni) then
+        do k=1,len
+            do i=1,ni                           
 
-            do k=1,len
-                do i=1,ni
-                    r(h)=dot_product(a((i-1)*nj+1:i*nj+1),b((k-1)*nj+1:k*nj+1))
-                    h=h+1
+                r(h)=dot_product(a((i-1)*nj+1:i*nj),b((k-1)*nj+1:k*nj))
+                
+                if(proceso.eq.3) then
 
-                    if(h.gt.len) then
-                        exit
-                    end if
-                end do
+                    ! print *,"h",h,"r(h)", r(h)
+                    ! print *,"h",h,"a", a((i-1)*nj+1:i*nj)
+                    ! print *,"h",h,"b", b((i-1)*nj+1:i*nj)
+                    ! print *,"i",i,"k",k,"h",h,"a(ini):", (i-1)*nj+1,"a(fin):",i*nj
+
+                end if
+
+                h=h+1
 
                 if(h.gt.len) then
                     exit
                 end if
+
             end do
 
-        end if
+            if(h.gt.len) then
+                exit
+            end if
+        end do
+
+        ! print *,"r", r
 
     end subroutine dot_product_ab
 
@@ -470,16 +551,18 @@ contains
     subroutine assignation_ab(p)        
         integer :: p
 
+        ! print *,"p", p
+
         if(ne.gt.ni) then            
-            call recv_ra(ni,MASTER,11000+p)
-            call recv_rb(ne,MASTER,12000+p)
+            call recv_a(ni,MASTER)
+            call recv_b(ne,MASTER)
         else if(ne.eq.ni) then
-            call recv_ra(ni,MASTER,21000+p)
-            call recv_rb(1,MASTER,22000+p)
+            call recv_a(ni,MASTER)
+            call recv_b(1,MASTER)
         else if(ne.lt.ni) then
-            call recv_ra(ne,MASTER,31000+p)
+            call recv_a(ne,MASTER)
             len = int(((p+1)*ne-1)/ni)-int((p*ne)/ni)+1
-            call recv_rb(len,MASTER,32000+p)
+            call recv_b(len,MASTER)
         end if
     end subroutine assignation_ab
 
@@ -487,38 +570,108 @@ contains
         integer ::   p        
         if(re.ne.0) then
             if(ne.gt.ni) then
-                call recv_ra(ni,MASTER,13000+p)                
-                call recv_rb(re,MASTER,14000+p)
+                call recv_residue_a(ni,MASTER)                
+                call recv_residue_b(re,MASTER)
             else if(ne.eq.ni) then
-                call recv_ra(re,MASTER,23000+p)
-                call recv_rb(1,MASTER,24000+p)
+                call recv_residue_a(re,MASTER)
+                call recv_residue_b(1,MASTER)
             else if(ne.lt.ni) then
-                call recv_ra(re,MASTER,33000+p)
+                call recv_residue_a(re,MASTER)
                 len = int((np*ne+re-1)/ni)-int((np*ne)/ni)+1      
-                call recv_rb(len,MASTER,34000+p)
+                call recv_residue_b(len,MASTER)
             end if
         end if
     end subroutine assignation_residue_ab
 
-    subroutine recv_ra(lena, rank, tag)
-        integer :: lena, rank, tag
+    subroutine send_a(p)
+        integer :: p, tag
+
+        if(ne.gt.ni) then
+            tag = 11000
+        else if(ne.eq.ni) then
+            tag = 21000
+        else if(ne.lt.ni) then
+            tag = 31000
+        end if
+
+        ! print *, "send proceso", proceso,"p",p, "a", a,"tag",tag+p, "len", len
+        call MPI_SEND(a,len,MPI_REAL8,p,tag+p,MPI_COMM_WORLD,ierr)
+        ! print *, "send proceso", proceso,"p",p, "a", a,"tag",tag+p, "len", len        
+    end subroutine send_a
+
+    subroutine recv_a(lena, p)
+        integer :: lena, p, tag
+        if(ne.gt.ni) then
+            tag = 11000
+        else if(ne.eq.ni) then
+            tag = 21000
+        else if(ne.lt.ni) then
+            tag = 31000
+        end if
         len=lena*nj
         if(allocated(a)) then
             deallocate(a)
         end if
         allocate(a(len))
-        call MPI_RECV(a,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
-    end subroutine recv_ra
+        ! print *, "recv proceso", proceso,"p",p, "a", a,"tag",tag+proceso, "len", len
+        call MPI_RECV(a,len,MPI_REAL8,p,tag+proceso,MPI_COMM_WORLD,status,ierr)
+        ! print *, "recv proceso", proceso,"p",p, "a", a,"tag",tag+proceso, "len", len
+    end subroutine recv_a
 
-    subroutine recv_rb(lenb, rank, tag)
-        integer :: lenb, rank, tag
+    subroutine recv_residue_a(lena, p)
+        integer :: lena, p, tag
+        if(ne.gt.ni) then
+            tag = 13000
+        else if(ne.eq.ni) then
+            tag = 23000
+        else if(ne.lt.ni) then
+            tag = 33000
+        end if
+        len=lena*nj
+        if(allocated(a)) then
+            deallocate(a)
+        end if
+        allocate(a(len))
+        ! print *, "recv proceso", proceso,"p",p, "a", a,"tag",tag+proceso
+        call MPI_RECV(a,len,MPI_REAL8,p,tag+proceso,MPI_COMM_WORLD,status,ierr)
+        ! print *, "proceso", proceso,"p",p, "a", a,"tag",tag
+    end subroutine recv_residue_a
+
+    subroutine recv_b(lenb, p)
+        integer :: lenb, p, tag 
+        if(ne.gt.ni) then
+            tag = 12000
+        else if(ne.eq.ni) then
+            tag = 22000
+        else if(ne.lt.ni) then
+            tag = 32000
+        end if               
         len=lenb*nj
         if(allocated(b)) then
             deallocate(b)
         end if
         allocate(b(len))
-        call MPI_RECV(b,len,MPI_REAL8,rank,tag,MPI_COMM_WORLD,status,ierr)
-    end subroutine recv_rb
+        ! print *, "recv proceso", proceso,"p",p, "b", b,"tag",tag+proceso
+        call MPI_RECV(b,len,MPI_REAL8,p,tag+proceso,MPI_COMM_WORLD,status,ierr)
+    end subroutine recv_b
+
+    subroutine recv_residue_b(lenb, p)
+        integer :: lenb, p, tag 
+        if(ne.gt.ni) then
+            tag = 14000
+        else if(ne.eq.ni) then
+            tag = 24000
+        else if(ne.lt.ni) then
+            tag = 34000
+        end if               
+        len=lenb*nj
+        if(allocated(b)) then
+            deallocate(b)
+        end if
+        allocate(b(len))
+        ! print *, "recv proceso", proceso,"p",p, "b", b,"tag",tag+proceso
+        call MPI_RECV(b,len,MPI_REAL8,p,tag+proceso,MPI_COMM_WORLD,status,ierr)
+    end subroutine recv_residue_b
 
     subroutine config_args()
         integer :: e, ei, ej, ek, x

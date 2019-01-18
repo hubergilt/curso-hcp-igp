@@ -83,13 +83,15 @@ subroutine rand_matrix()
 
     do j=1, ma_ncol
         do i=1, ma_nfil        
-            ma(i, j)=rand(0)*10+1   
+            ! ma(i, j)=rand(0)*10+1   
+            ma(i, j)=1
         end do
     end do
 
     do j=1, mb_ncol
         do i=1, mb_nfil
-            mb(i, j)=rand(0)*10+1                       
+            ! mb(i, j)=rand(0)*10+1                       
+            mb(i, j)=1
         end do
     end do
 
