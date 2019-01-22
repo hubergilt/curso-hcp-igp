@@ -278,7 +278,7 @@ contains
             call send_a(p)
 
             call compose_b(p)
-            ! print *, "p : ", p, "b : ", b            
+            ! print *, "proceso", proceso,"p",p, "b", b
             call send_b(p)
         end do 
 
@@ -344,8 +344,10 @@ contains
     subroutine compose_b(p)
         integer :: p
         if(ne.gt.ni) then
-            ini = p*int(ne/ni)+1
-            fin = (p+1)*int(ne/ni)+mod(ne,ni)
+            ! ini = p*int(ne/ni)+1
+            ! fin = (p+1)*int(ne/ni)+mod(ne,ni)
+            ini = int(p*ne/nk)+1
+            fin = int((p*ne+ne)/nk)+1
         else if(ne.eq.ni) then
             ini = p+1
             fin = p+1
@@ -353,7 +355,9 @@ contains
             ini = int((p*ne)/ni)+1
             fin = int(((p+1)*ne-1)/ni)+1
         end if
-        ! print *, "b(ini): ", ini, ", b(fin): ", fin        
+        if(p.eq.1) then
+            print *, "proceso", proceso,"p",p, "ini", ini, "fin", fin
+        end if
         call allocate_b(ini, fin)
         ! if(p.eq.1) then
         !     print *, "proceso", proceso,"p",p, "b", b, "len", len
@@ -363,8 +367,10 @@ contains
      subroutine compose_residue_b()
         integer :: p 
         if(ne.gt.ni) then
-            ini = np*int(ne/ni)+1
-            fin = np*int(ne/ni)+re
+            ! ini = np*int(ne/ni)+1
+            ! fin = np*int(ne/ni)+re
+            ini = int(np*ne/nk)+1
+            fin = int((np*ne+re)/nk)+1            
         else if(ne.eq.ni) then
             ini = np+1
             fin = np+1
@@ -580,6 +586,15 @@ contains
         end if
     end function circular_ni
 
+    integer function circular_nk(index)
+        integer :: index
+        if(mod(index,nk).eq.0) then
+            circular_nk=nk
+        else
+            circular_nk=mod(index,nk)
+        end if
+    end function circular_nk
+
     subroutine expand_nj(ini, fin, len)
         integer ini, fin, len
         ini=nj*(ini-1)+1        
@@ -611,8 +626,8 @@ contains
         allocate(r(len))
 
         if (p.eq.3) then
-            print *,"a", a
-            print *,"b", b            
+            ! print *,"a", a
+            ! print *,"b", b            
         end if
 
         h=1
@@ -626,12 +641,12 @@ contains
 
                 r(h)=dot_product(a((i-1)*nj+1:i*nj),b((k-1)*nj+1:k*nj))
 
-                if (p.eq.3) then
-                    print *, "p", p, "h", h, "g", g, "i", i, "k", k
-                    print *, "p", p, "a", a((i-1)*nj+1:i*nj)
-                    print *, "p", p, "b", b((k-1)*nj+1:k*nj)
-                    print *, "p", p, "r(h)", r(h)
-                end if
+                ! if (p.eq.3) then
+                !     print *, "p", p, "h", h, "g", g, "i", i, "k", k, "kk", int((g-1)/nk)+1
+                !     print *, "p", p, "a", a((i-1)*nj+1:i*nj)
+                !     print *, "p", p, "b", b((k-1)*nj+1:k*nj)
+                !     print *, "p", p, "r(h)", r(h)
+                ! end if
 
                 h=h+1
 
@@ -675,7 +690,11 @@ contains
 
         if(ne.gt.ni) then            
             call recv_a(ni,MASTER)
-            call recv_b(int(ne/ni)+mod(ne,ni),MASTER)
+            ini = int(p*ne/nk)+1
+            fin = int((p*ne+ne)/nk)+1
+            len = fin-(ini-1)
+            ! call recv_b(int(ne/ni)+mod(ne,ni),MASTER)
+            call recv_b(len,MASTER)
         else if(ne.eq.ni) then
             call recv_a(ni,MASTER)
             call recv_b(1,MASTER)
@@ -691,8 +710,12 @@ contains
         if(re.ne.0) then
             if(ne.gt.ni) then
                 ! call recv_residue_a(re,MASTER)
-                call recv_residue_a(ni,MASTER)                
-                call recv_residue_b(re,MASTER)
+                call recv_residue_a(ni,MASTER)
+                ini = int(np*ne/nk)+1
+                fin = int((np*ne+re)/nk)+1
+                len = fin-(ini-1)               
+                ! call recv_residue_b(re,MASTER)
+                call recv_residue_b(len,MASTER)
             else if(ne.eq.ni) then
                 call recv_residue_a(re,MASTER)
                 call recv_residue_b(1,MASTER)
