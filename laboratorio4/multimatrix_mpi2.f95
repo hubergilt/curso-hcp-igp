@@ -60,13 +60,13 @@ end subroutine
 subroutine rand_ma()
     do j=1, nj
         do i=1, ni        
-            ! ma(i, j)=rand(0)*10+1
+            ma(i, j)=rand(0)*10+1
             ! ma(i, j)=1
-            if (i.eq.j) then
-                ma(i, j)=1
-            else 
-                ma(i, j)=0
-            end if
+            ! if (i.eq.j) then
+            !     ma(i, j)=1
+            ! else 
+            !     ma(i, j)=0
+            ! end if
         end do
     end do
 end subroutine rand_ma
@@ -74,13 +74,13 @@ end subroutine rand_ma
 subroutine rand_mb()
     do j=1, nk
         do i=1, nj
-            ! mb(i, j)=rand(0)*10+1                     
+            mb(i, j)=rand(0)*10+1                     
             ! mb(i, j)=1
-            if (i.eq.j) then
-                mb(i, j)=1
-            else
-                mb(i, j)=0
-            end if
+            ! if (i.eq.j) then
+            !     mb(i, j)=1
+            ! else
+            !     mb(i, j)=0
+            ! end if
         end do
     end do
 end subroutine rand_mb
@@ -109,18 +109,28 @@ program main
     integer, parameter :: MASTER=0
     integer :: ierr, proceso, np, ne, p, h, g, f, flg, re, pflag, ini, fin, len
     integer :: status(MPI_STATUS_SIZE)
-    real(8) :: start, finish, nb
+    real(8) :: start, finish, nb, start0
 
     real(8), allocatable :: a(:), b(:), r(:)
 
-    104 format("Multiplicacion terminada en >> ",F10.3," segundos") 
-    105 format("Tamano de  memoria asignada >> ",F12.0," bytes")
-    106 format("Resevacion mem terminada en >> ",F10.3," segundos") 
-    107 format("Asig aleatoria terminada en >> ",F10.3," segundos") 
-    108 format("Conv a arreglo terminada en >> ",F10.3," segundos") 
-    109 format("Descomposicion terminada en >> ",F10.3," segundos") 
-    110 format("Mult proceso 0 terminada en >> ",F10.3," segundos")     
-    111 format("Comp proceso 0 terminada en >> ",F10.3," segundos")     
+    
+    106 format("(01) Resevacion mem terminada en >> ",F10.3," segundos") 
+    107 format("(02) Asig aleatoria terminada en >> ",F10.3," segundos") 
+    108 format("(03) Tran a arreglo terminada en >> ",F10.3," segundos") 
+    109 format("(04) Descomposicion terminada en >> ",F10.3," segundos") 
+    110 format("(05) Mult proceso 0 terminada en >> ",F10.3," segundos")     
+    111 format("(06) Comp proceso 0 terminada en >> ",F10.3," segundos")     
+    112 format("(07) Asignar proceso ",I4," terminada en >> ",F10.3," segundos")
+    113 format("(08) Multipli proceso ",I4," terminada en >> ",F10.3," segundos")
+    114 format("(09) Devolver proceso ",I4," terminada en >> ",F10.3," segundos")
+    115 format("(10) Recomp procesos terminada en >> ",F10.3," segundos")
+    116 format("(11) Descom residuo terminada en >> ",F10.3," segundos")
+    117 format("(12) Asigna, Mult y Comp residuo terminada en >> ",F10.3," segundos")
+    118 format("(13) Recive y Recomp residuo terminada en >> ",F10.3," segundos")
+    119 format("(14) Destran de terminada en >> ",F10.3," segundos")         
+    120 format("(15) Tamano de  memoria asignada >> ",F12.0," bytes")
+    121 format("(16) Multiplicacion de matrices terminada en    >> ",F10.3," segundos") 
+
 
     call config_args()
     flg = 0
@@ -144,6 +154,7 @@ program main
     if(proceso.eq.MASTER) then
 
         call cpu_time(start)
+        start0=start
         call allocate_matrix()
         call cpu_time(finish)
         write(*,106) finish-start
@@ -182,48 +193,65 @@ program main
         call cpu_time(finish)
         write(*,111) finish-start
 
-        call cpu_time(start)
-
     else
-
+        call cpu_time(start)
         ! print *, "proceso", proceso
         call assignation_ab(proceso)
+        call cpu_time(finish)
+        write(*,112) proceso, finish-start
         
+        call cpu_time(start)        
         call dot_product_ab(ne, proceso)
+        call cpu_time(finish)
+        write(*,113) proceso, finish-start
+
         ! print *, "proceso", proceso, "a", a
         ! print *, "proceso", proceso, "b", b
         ! print *, "proceso", proceso, "r", r
 
+        call cpu_time(start)        
         call send_result(MASTER,ne)
-
+        call cpu_time(finish)
+        write(*,114) proceso, finish-start
 
     end if
 
     !El proceso 0, recompone los resultados parciales
+    call cpu_time(start)
     if(proceso.eq.MASTER) then
         do p=1, np-1
             call recv_result(p, ne)
             call recompose_matrix(p,ne)
         end do
     end if
+    call cpu_time(finish)
+    write(*,115) finish-start    
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
     ! Si hay resto, el ultimo proceso termina con la multiplicacion
     if(re.gt.0) then
+
+
         if(proceso.eq.(MASTER)) then 
             ! print *, "proceso", proceso, "re",re             
             
+            call cpu_time(start)
             call descompose_residue_matrix()
-
+            call cpu_time(finish)
+            write(*,116) finish-start
             ! print *, "proceso", proceso, "a", a
             ! print *, "proceso", proceso, "b", b
             ! print *, "proceso", proceso, "r", r
 
         else if(proceso.eq.(np-1)) then
+
+            call cpu_time(start)            
             call assignation_residue_ab(proceso)
             call dot_product_ab(re, np)            
             call send_result(MASTER,re)
+            call cpu_time(finish)            
+            write(*,117) finish-start            
 
             ! print *, "proceso", proceso, "a", a
             ! print *, "proceso", proceso, "b", b
@@ -235,26 +263,35 @@ program main
 
         if(proceso.eq.MASTER) then
 
+            call cpu_time(start)
             call recv_result(np-1, re)
             ! print *, "proceso", proceso, "r", r           
             call recompose_residue_matrix(np, ne, re)
-
+            call cpu_time(finish)         
+            write(*,118) finish-start             
+    
         end if
+
     end if
+  
 
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)    
 
     !Para el proceso 0, devuelve la dimension original de la matrix
     if(proceso.eq.MASTER) then
      
+        call cpu_time(start)     
+
         mr = reshape(source=rr, shape=[ni, nk])
 
         !calcula el tiempo que toma el proceso y la memoria asignada
         call cpu_time(finish)
-        write(*,104) finish-start
+        write(*,119) finish-start
 
         nb=(ni*nj+nj*nk+ni*nk)*8. !c_sizeof(real(8)) = 8
-        write(*,105) nb
+        write(*,120) nb
+        write(*,121) finish-start0
+
         print *    
 
         if(pflag.ge.1) then
@@ -355,9 +392,9 @@ contains
             ini = int((p*ne)/ni)+1
             fin = int(((p+1)*ne-1)/ni)+1
         end if
-        if(p.eq.1) then
-            print *, "proceso", proceso,"p",p, "ini", ini, "fin", fin
-        end if
+        ! if(p.eq.1) then
+        !     print *, "proceso", proceso,"p",p, "ini", ini, "fin", fin
+        ! end if
         call allocate_b(ini, fin)
         ! if(p.eq.1) then
         !     print *, "proceso", proceso,"p",p, "b", b, "len", len

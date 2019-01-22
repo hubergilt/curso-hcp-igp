@@ -5,9 +5,9 @@ module matrix
     real, parameter:: MA__NCOL = 4
     real, parameter:: MB__NFIL = 4
     real, parameter:: MB__NCOL = 4
-    real, allocatable :: ma(:,:)
-    real, allocatable :: mb(:,:)
-    real, allocatable :: mr(:,:)
+    real(8), allocatable :: ma(:,:)
+    real(8), allocatable :: mb(:,:)
+    real(8), allocatable :: mr(:,:)
     integer :: ma_nfil
     integer :: ma_ncol
     integer :: mb_nfil
@@ -83,15 +83,15 @@ subroutine rand_matrix()
 
     do j=1, ma_ncol
         do i=1, ma_nfil        
-            ! ma(i, j)=rand(0)*10+1   
-            ma(i, j)=1
+            ma(i, j)=rand(0)*10+1   
+            ! ma(i, j)=1
         end do
     end do
 
     do j=1, mb_ncol
         do i=1, mb_nfil
-            ! mb(i, j)=rand(0)*10+1                       
-            mb(i, j)=1
+            mb(i, j)=rand(0)*10+1                       
+            ! mb(i, j)=1
         end do
     end do
 
@@ -134,7 +134,7 @@ program multimatrix_seq
     call cpu_time(finish)
     write(*,104) finish-start
 
-    nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*16. ! sizeof(real)=16
+    nb=(ma_nfil*ma_ncol+mb_nfil*mb_ncol+ma_nfil*mb_ncol)*8. ! c_sizeof(real(8))=8
     write(*,105) nb
     print *
 
