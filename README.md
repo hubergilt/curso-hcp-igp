@@ -71,16 +71,16 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 ![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_sequencial_y_paralelo_np%3D1.png "Gráfica de la multiplicación de matrices en sequencial y paralelo usando MPI")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 1 hasta 12 CPUs
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np=1_hasta_np%3D12 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 1 hasta 12 CPUs")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D1_hasta_np%3D12 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 1 hasta 12 CPUs")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 13 hasta 24 CPUs
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np=13_hasta_np%3D24 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 13 hasta 24 CPUs")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D13_hasta_np%3D24 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 13 hasta 24 CPUs")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 25 hasta 36 CPUs
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np=25_hasta_np%3D36 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 25 hasta 36 CPUs")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D25_hasta_np%3D36 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 25 hasta 36 CPUs")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 37 hasta 48 CPUs
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np=37_hasta_np%3D48 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 37 hasta 48 CPUs")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D37_hasta_np%3D48 "Gráfica de la multiplicación de matrices paralelo usando MPI desde 37 hasta 48 CPUs")
 
 ## Laboratorio 5
 
