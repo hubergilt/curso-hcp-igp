@@ -68,7 +68,7 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 * Programa en Fortran para la multiplicacion de dos matrices, utilizando MPI
 
 * Gráfica de la multiplicación de matrices en sequencial y en paralelo usando MPI, sobre el de nodo computo
-![Grafico de Multiplicacion de Matrices paralelo]("laboratorio4/Programa sequencial y paralelo np=1.png" "Gráfica de la multiplicación de matrices en sequencial y paralelo usando MPI")
+![Grafico de Multiplicacion de Matrices paralelo]('laboratorio4/Programa sequencial y paralelo np=1.png' "Gráfica de la multiplicación de matrices en sequencial y paralelo usando MPI")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 1 hasta 12 CPUs
 ![Grafico de Multiplicacion de Matrices paralelo]("laboratorio4/Programa paralelo de np=1 hasta np=12" "Gráfica de la multiplicación de matrices paralelo usando MPI desde 1 hasta 12 CPUs")
