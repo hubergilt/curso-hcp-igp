@@ -80,7 +80,12 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 ![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D25_hasta_np%3D36.png "Gráfica de la multiplicación de matrices paralelo usando MPI desde 25 hasta 36 CPUs")
 
 * Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 37 hasta 48 CPUs
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3Ds37_hasta_np%3D48.png "Gráfica de la multiplicación de matrices paralelo usando MPI desde 37 hasta 48 CPUs")
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Programa_paralelo_de_np%3D37_hasta_np%3D48.png "Gráfica de la multiplicación de matrices paralelo usando MPI desde 37 hasta 48 CPUs")
+
+* Gráfica de la multiplicación de matrices en paralelo usando MPI, duración vs el número de procesadores para dos matrices de 5000x5000 y un tamaño del problema de 600MB.
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/Duracion_vs_Numero_de_procesadores_NB%3D600MB.png "Gráfica duración vs número de procesadores para una tamaño del problema de 600MB")
+
+
 
 ## Laboratorio 5
 
