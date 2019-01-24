@@ -46,22 +46,33 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 ## Laboratorio 1
 
 * Programar una calculador con menu con c
-* Programa multiplicacion de matrices cuadras con c
+* Programa multiplicación de matrices cuadras con c
 
 ## Laboratorio 2
 
-* Programar paralelizar la operacion de multiplicacion de matrices
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_master.png "Grafica de la multiplicacion de matrices paralelo nodo master")
-![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_computo.png "Grafica de la multiplicacion de matrices paralelo nodo computo")
+* Programar paralelizar la operacion de multiplicación de matrices, utilizando hilos con librería pthread
+
+* Gráfica de la multiplicación de matrices paralelo nodo master
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_master.png "Gráfica de la multiplicación de matrices paralelo nodo master")
+
+* Gráfica de la multiplicación de matrices paralelo nodo computo
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio2/medida_computo.png "Gráfica de la multiplicación de matrices paralelo nodo computo")
 
 ## Laboratorio 3
 
 * Programar una calculador con menu con fortran 95
-* Programa multiplicacion de matrices cuadras con fortran 95
+* Programa multiplicación de matrices cuadras con fortran 95
 
 ## Laboratorio 4
 
-* Fortran MPI tiempo
+* Programa en Fortran para la multiplicacion de dos matrices, utilizando MPI
+
+* Gráfica de la multiplicación de matrices en sequencial y en paralelo usando MPI, sobre el de nodo computo
+![Grafico de Multiplicacion de Matrices paralelo]("laboratorio4/Programa sequencial y paralelo np=1.png" "Gráfica de la multiplicación de matrices en sequencial y paralelo usando MPI")
+
+* Gráfica de la multiplicación de matrices en paralelo usando MPI, desde 1 hasta 12 CPUs
+![Grafico de Multiplicacion de Matrices paralelo]("laboratorio4/Programa paralelo de np=1 hasta np=12" "Gráfica de la multiplicación de matrices paralelo usando MPI desde 1 hasta 12 CPUs")
+
 
 ## Laboratorio 5
 
