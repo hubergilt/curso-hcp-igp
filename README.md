@@ -43,6 +43,10 @@ Ejemplos de MPI con fortran 95, para enviar y recibir enteros y arreglos usando 
 
 Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI_BCAST y barreras MPI_BARRIER, partiendo datos usando scatter MPI_SCATTER, componiendo datos usando MPI_GATHER y usando operaciones de reduccion MPI_REDUCE.
 
+## Clase 11
+
+Repaso de operaciones MPI_REDUCE, para suma MPI_SUM y producto MPI_PROD, generar archivos HDF5, con el comando h5fc, invocar c desde fortran y fortran desde c
+
 ## Laboratorio 1
 
 * Programar una calculador con menu con c
