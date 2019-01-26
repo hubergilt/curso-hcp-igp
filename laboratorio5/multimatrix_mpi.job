@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --job-name=multimpi
+#SBATCH --partition=mpi_long2
+#SBATCH --output=slurm-%J.out
+#SBATCH --error=slurm-%j.err
+##SBATCH --nodes=10
+#SBATCH --ntasks=48
+module load gnu/4.8.5 
+module load gnu_mvapich2/2.3.0
+mpifort multimatrix_mpi.f95 -o multimatrix_mpi.exe
+
+for np in 2 4 8 16 32; do
+
+    echo "--- MULTIPLICACION DE MATRICES ---, np =" ${np}
+
+    for dim in 2 16 128 1024 2048 3072 4096 5120; do 
+        mpirun -np ${np} ./multimatrix_mpi.exe ${dim},${dim},${dim} 1
+    done;
+    
+done;
+

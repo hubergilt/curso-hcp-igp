@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH --job-name=multiseq
+#SBATCH --partition=mpi_long2
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
+##SBATCH --nodelist=n20
+#SBATCH --ntasks=1
+gfortran ./multimatrix_seq.f95 -o ./multimatrix_seq.exe
+./multimatrix_seq.exe 2,2,2 1
+./multimatrix_seq.exe 16,16,16 1
+./multimatrix_seq.exe 128,128,128 1
+./multimatrix_seq.exe 1024,1024,1024 1
+./multimatrix_seq.exe 2048,2048,2048 1
+./multimatrix_seq.exe 3072,3072,3072 1
+./multimatrix_seq.exe 4096,4096,4096 1
+./multimatrix_seq.exe 5120,5120,5120 1
