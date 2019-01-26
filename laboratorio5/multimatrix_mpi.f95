@@ -77,8 +77,8 @@ end subroutine deallocate_matrix
 subroutine rand_ma()
     do j=1, nj
         do i=1, ni        
-            ! ma(i, j)=rand(0)*10+1
-            ma(i, j)=1
+            ma(i, j)=rand(0)*10+1
+            ! ma(i, j)=1
             ! if (i.eq.j) then
             !     ma(i, j)=1
             ! else 
@@ -91,8 +91,8 @@ end subroutine rand_ma
 subroutine rand_mb()
     do j=1, nk
         do i=1, nj
-            ! mb(i, j)=rand(0)*10+1                     
-            mb(i, j)=1
+            mb(i, j)=rand(0)*10+1                     
+            ! mb(i, j)=1
             ! if (i.eq.j) then
             !     mb(i, j)=1
             ! else
@@ -139,14 +139,13 @@ program main
     106 format("(01) Resevacion mem terminada en >> ",F10.3," segundos") 
     107 format("(02) Asig aleatoria terminada en >> ",F10.3," segundos") 
     108 format("(03) Tran a arreglo terminada en >> ",F10.3," segundos") 
-    109 format("(04) Reservar memoria terminada en >> ",F10.3," segundos") 
-    110 format("(05) Oper. Barrier, Broadcast, Scatter terminada en >> ",F10.3," segundos")     
-    111 format("(06) Multiplicacion por proceso terminada >> ",F10.3," segundos")     
-    112 format("(07) Oper. Gatter terminada en >> ",F10.3," segundos")
+    109 format("(04) Reservar memoria, para proceso ",I4,", terminada en >> ",F10.3," segundos") 
+    110 format("(05) Oper. BAR, BRO, SCA para proceso ",I4,", terminada en >> ",F10.3," segundos")     
+    111 format("(06) Multiplicacion para proceso ",I4,", terminada >> ",F10.3," segundos")     
+    112 format("(07) Oper. GATHER para proceso ",I4,", terminada en >> ",F10.3," segundos")
     113 format("(08) Recomposicion terminada en >> ",F10.3," segundos")
-    114 format("(09) Destran de terminada en >> ",F10.3," segundos")         
-    115 format("(10) Tamano de  memoria asignada >> ",F12.0," bytes")
-    116 format("(11) Multiplicacion de matrices terminada en    >> ",F10.3," segundos") 
+    114 format("(09) Tamano de  memoria asignada >> ",F12.0," bytes")
+    115 format("(10) Multiplicacion de matrices terminada en    >> ",F10.3," segundos") 
 
     call config_args()
     ! print *, "ni, nj, nk", ni, nj, nk
@@ -220,14 +219,14 @@ program main
         ! print *,"proceso", proceso, "a", a
         ! print *,"proceso", proceso, "b", b
     end if
-    write(*,109) finish-start
-
+    write(*,109) proceso, finish-start
 
     call cpu_time(start)
     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
     call MPI_BCAST(a,ni*nj,MPI_REAL8,MASTER,MPI_COMM_WORLD,ierr)
     call MPI_SCATTER(b,len*nj,MPI_REAL8,be,len*nj,MPI_REAL8,MASTER,MPI_COMM_WORLD,ierr)
-    write(*,110) finish-start
+    call cpu_time(finish)
+    write(*,110) proceso, finish-start
 
     ! if (proceso.ne.0) then       
     !     print *,"proceso", proceso, "a", a
@@ -239,37 +238,36 @@ program main
 
     call cpu_time(start)
     call dot_product_matrix()
-    write(*,111) finish-start
-
+    call cpu_time(finish)
+    write(*,111) proceso, finish-start
 
     call cpu_time(start)
     call MPI_GATHER(re,ne,MPI_REAL8,r,ne,MPI_REAL8,MASTER,MPI_COMM_WORLD,ierr)
-    write(*,112) finish-start
+    call cpu_time(finish)
+    write(*,112) proceso, finish-start
 
     if (proceso.eq.MASTER) then
 
         call cpu_time(start)
         call recompose_matrix()
+        call cpu_time(finish)
         write(*,113) finish-start
 
-        !calcula el tiempo que toma el proceso y la memoria asignada
-        call cpu_time(finish)
-        write(*,114) finish-start
-
         nb=(ni*nj+nj*nk+ni*nk)*8. !c_sizeof(real(8)) = 8
-        write(*,115) nb
-        write(*,116) finish-start0
+        write(*,114) nb
+        write(*,115) finish-start0
 
         if(pflag.ge.1) then
             call print_matrix()        
         end if
 
-        call deallocateAll()
+        call deallocate_matrix()
 
     end if
 
-    call MPI_FINALIZE(ierr)
+    call deallocateAll()
 
+    call MPI_FINALIZE(ierr)
 
 contains
 
@@ -305,15 +303,15 @@ contains
         ! print *,"proceso", proceso, "len", len
         call allocar(be, len*nj)
         call allocar(re, ne)  
+  
     end subroutine allocateAll
 
     subroutine deallocateAll()
-        call deallocate_matrix()
         call desallocar(a)
         call desallocar(b)
         call desallocar(r)
         call desallocar(be)
-        call desallocar(re) 
+        call desallocar(re)
     end subroutine deallocateAll
 
     integer function circular_ni(index)
