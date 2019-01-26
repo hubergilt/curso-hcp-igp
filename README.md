@@ -89,7 +89,19 @@ Ejemplos de MPI con fortran 95, enviando y recibiendo datos usando broadcast MPI
 
 ## Laboratorio 5
 
-* Fortran funciones MPI (gatherm, scatter, reduce) tiempo
+* Programa en Fortran para la multiplicacion de dos matrices, utilizando operaciones MPI : Broadcast, Scatter y Gatter
+
+* Gráfica de la multiplicación de matrices en sequencial y en paralelo operaciones MPI, sobre el de nodo computo
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/mpi_oper01.png "Gráfica de la multiplicación de matrices en sequencial y paralelo usando operaciones MPI")
+
+* Gráfica de la multiplicación de matrices en paralelo usando operaciones MPI, para 2, 4, 8, 16 y 32 CPUs
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/mpi_oper02.png "Gráfica de la multiplicación de matrices paralelo utilizando operaciones MPI, para 2, 4, 8, 16 y 32 CPUs")
+
+* Gráfica de la multiplicación de matrices en paralelo usando operaciones MPI, comparacion con el programa sequencial
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/mpi_oper03.png "Gráfica de la multiplicación de matrices paralelo usando operaciones MPI, comparacion con el programa sequencial")
+
+* Gráfica de la multiplicación de matrices en paralelo usando operaciones MPI, comparacion con el programa MPI
+![Grafico de Multiplicacion de Matrices paralelo](laboratorio4/mpi_oper04.png "Gráfica de la multiplicación de matrices paralelo usando operaciones MPI, comparacion con el programa MPI")
 
 ## Laboratorio 6
 
