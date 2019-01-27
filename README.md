@@ -109,4 +109,4 @@ Repaso de operaciones MPI_REDUCE, para suma MPI_SUM y producto MPI_PROD, generar
 
 ## Laboratorio 6
 
-* Fortran HDF5 Guardar la salida
+* Programa calculadora en FORTRAN, con las funciones desde C y programar multiplicacion de matrices con FORTRAN
