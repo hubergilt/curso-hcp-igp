@@ -1,5 +1,3 @@
-
-
 program mult_matrix
     use mpi
     PARAMETER (MASTER=0)
@@ -122,8 +120,3 @@ program mult_matrix
 
 
 end program mult_matrix
-
-
-
-
-

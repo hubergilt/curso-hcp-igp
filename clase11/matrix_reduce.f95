@@ -1,5 +1,3 @@
-
-
 program mult_matrix
     use mpi
     PARAMETER (MASTER=0)
@@ -120,10 +118,4 @@ program mult_matrix
         end if
     end subroutine llenar_azar
 
-
 end program mult_matrix
-
-
-
-
-
