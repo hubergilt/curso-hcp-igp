@@ -1,6 +1,6 @@
 program main
 
-    implicit none
+    !implicit none
 
     integer, parameter:: SUMA = 1
     integer, parameter:: RESTA= 2
