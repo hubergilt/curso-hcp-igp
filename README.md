@@ -93,7 +93,7 @@ Repaso de operaciones MPI_REDUCE, para suma MPI_SUM y producto MPI_PROD, generar
 
 ## Laboratorio 5
 
-* Programa en Fortran para la multiplicacion de dos matrices, utilizando operaciones MPI : Broadcast, Scatter y Gatter
+* Programa en Fortran para la multiplicacion de dos matrices, utilizando operaciones MPI : Broadcast, Scatter y Gatter y guardar la salidas en formato HDF5
 
 * Gráfica de la multiplicación de matrices en sequencial y en paralelo operaciones MPI, sobre el de nodo computo
 ![Grafico de Multiplicacion de Matrices paralelo](laboratorio5/mpi_oper01.png "Gráfica de la multiplicación de matrices en sequencial y paralelo usando operaciones MPI")
@@ -110,8 +110,3 @@ Repaso de operaciones MPI_REDUCE, para suma MPI_SUM y producto MPI_PROD, generar
 ## Laboratorio 6
 
 * Fortran HDF5 Guardar la salida
-
-## Laboratorio 7
-
-* Fortran a C
-
