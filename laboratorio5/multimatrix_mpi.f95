@@ -1,9 +1,9 @@
 module matrix
-
+    use hdf5
     implicit none
     real(8), allocatable :: ma(:,:), mb(:,:), mr(:,:)
     real(8), allocatable :: ra(:,:), rb(:,:), rr(:,:), ta(:,:)
-    integer :: ni, nj, nk, i, j, k
+    integer :: ni=2, nj=2, nk=2, i, j, k
 
 contains
  
@@ -121,6 +121,66 @@ subroutine reshape_matrix()
     ra = reshape(source=ta, shape=[1, ni*nj])
     rb = reshape(source=mb, shape=[1, nj*nk])
 end subroutine reshape_matrix
+
+subroutine savehdf5()
+    character(len=14), parameter :: filename = "multimatrix.h5" ! Nombre del archivo
+    character(len=12), parameter :: dsetname1 = "Matrix ma" ! Nombre del Dataset
+    character(len=12), parameter :: dsetname2 = "Matrix mb" ! Nombre del Dataset
+    character(len=12), parameter :: dsetname3 = "Matrix mr" ! Nombre del Dataset
+
+    integer(hid_t) :: file_id
+    integer(hid_t) :: dset1_id, dset2_id, dset3_id
+    integer(hid_t) :: dspace1_id, dspace2_id, dspace3_id
+
+    integer (hsize_t) , dimension(2) :: dims
+    integer :: rank = 2
+    integer :: error
+
+    call h5open_f(error)
+
+        call h5fcreate_f (filename,H5F_ACC_TRUNC_F,file_id,error)
+
+            dims = [ni, nj]
+            call h5screate_simple_f(rank,dims,dspace1_id,error)
+
+                call h5dcreate_f(file_id,dsetname1,H5T_NATIVE_DOUBLE,dspace1_id,dset1_id,error)
+
+                call h5dwrite_f(dset1_id,H5T_NATIVE_DOUBLE,ma,dims,error)
+
+                call h5dclose_f(dset1_id,error)
+
+            call h5sclose_f(dspace1_id,error)
+
+
+            dims = [nj, nk]
+            call h5screate_simple_f(rank,dims,dspace2_id,error)
+
+                call h5dcreate_f(file_id,dsetname2,H5T_NATIVE_DOUBLE,dspace2_id,dset2_id,error)
+
+                call h5dwrite_f(dset2_id,H5T_NATIVE_DOUBLE,ma,dims,error)
+
+                call h5dclose_f(dset2_id,error)
+
+            call h5sclose_f(dspace2_id,error)
+
+
+            dims = [ni, nk]
+            call h5screate_simple_f(rank,dims,dspace3_id,error)
+
+                call h5dcreate_f(file_id,dsetname3,H5T_NATIVE_DOUBLE,dspace3_id,dset3_id,error)
+
+                call h5dwrite_f(dset3_id,H5T_NATIVE_DOUBLE,mr,dims,error)
+
+                call h5dclose_f(dset3_id,error)
+
+            call h5sclose_f(dspace3_id,error)
+
+
+        call h5fclose_f(file_id,error)
+
+    call h5close_f(error)
+
+end subroutine savehdf5
 
 end module matrix
 
@@ -258,8 +318,10 @@ program main
         write(*,115) finish-start0
 
         if(pflag.ge.1) then
-            call print_matrix()        
+            call print_matrix()
         end if
+        
+        call savehdf5()
 
         call deallocate_matrix()
 
@@ -344,6 +406,7 @@ contains
         ni=1
         nj=1
         nk=1
+
         start = 0
         finish = 0
         nb = 0
